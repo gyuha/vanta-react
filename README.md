@@ -195,7 +195,7 @@ Bug reports, feature requests, and Pull Requests are welcome!
 Vanta React uses **dynamic imports** to load effects only when needed, significantly reducing the initial bundle size.
 
 ```tsx
-import { Vanta, useVantaEffect, preloadVantaEffects } from 'vanta-react';
+import { Vanta, useVantaEffect } from 'vanta-react';
 
 // Effects are loaded dynamically when first used
 function DynamicLoadingExample() {
@@ -211,43 +211,6 @@ function DynamicLoadingExample() {
   );
 }
 ```
-
-### Preloading for Better UX
-For frequently used effects, you can preload them to eliminate loading delays:
-
-```tsx
-import { useVantaPreloader } from 'vanta-react';
-
-function PreloadingExample() {
-  const effectsToPreload = ['net', 'waves', 'birds'];
-  const { 
-    isPreloading, 
-    progress, 
-    isComplete, 
-    cancelPreloading 
-  } = useVantaPreloader(effectsToPreload);
-
-  return (
-    <div>
-      {isPreloading && (
-        <div>
-          <div>Preloading: {progress.toFixed(0)}%</div>
-          <button onClick={cancelPreloading}>Cancel</button>
-        </div>
-      )}
-      {isComplete && <div>All effects ready!</div>}
-      {/* Your Vanta components */}
-    </div>
-  );
-}
-```
-
-#### Enhanced Preloading Features
-- **Sequential Loading**: Effects load one by one to maintain browser responsiveness
-- **Cancellable**: Users can cancel preloading at any time
-- **Real-time Progress**: Live progress updates during loading
-- **Performance Monitoring**: Memory usage and loading time tracking in development mode
-- **Error Recovery**: Individual effect failures don't stop other effects from loading
 
 ### Bundle Size Analysis
 - **Main bundle**: ~22 kB (core library)
@@ -298,29 +261,19 @@ useEffect(() => {
 ```
 
 #### 4. Performance Monitoring (Development Mode)
-Performance monitoring is automatically enabled in development mode:
+You can monitor effect loading performance in development mode:
 
 ```tsx
-import { 
-  isPerformanceMonitoringEnabled,
-  getMemoryUsage,
-  type PerformanceMetrics 
-} from 'vanta-react';
-
 function PerformanceExample() {
   useEffect(() => {
-    if (isPerformanceMonitoringEnabled()) {
-      console.log('Performance monitoring is active');
-      console.log(`Current memory usage: ${getMemoryUsage()} bytes`);
-    }
+    const start = performance.now();
+    
+    return () => {
+      const end = performance.now();
+      console.log(`Vanta rendering time: ${end - start}ms`);
+    };
   }, []);
 
-  return <div>/* Component content */</div>;
+  return <Vanta effect="net" background={true} />;
 }
 ```
-
-**Automatic Performance Logging:**
-- Loading start/completion times
-- Memory usage changes
-- Average loading time per effect
-- Detailed error information when failures occur

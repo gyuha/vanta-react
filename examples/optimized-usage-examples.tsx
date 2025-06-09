@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import type React from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Vanta, 
-  VantaEffectName, 
-  preloadVantaEffects, 
-  useVantaEffect,
-  useVantaPreloader 
-} from 'vanta-react';
+  type VantaEffectName, 
+  useVantaEffect
+} from '../src';
 
 /**
  * 기본 동적 로딩 예제
@@ -69,6 +68,7 @@ export const BasicDynamicExample: React.FC = () => {
         zIndex: 10
       }}>
         <button 
+          type="button"
           onClick={() => setEffect('net')}
           disabled={isLoading}
           style={{ marginRight: '10px' }}
@@ -76,6 +76,7 @@ export const BasicDynamicExample: React.FC = () => {
           Net
         </button>
         <button 
+          type="button"
           onClick={() => setEffect('waves')}
           disabled={isLoading}
           style={{ marginRight: '10px' }}
@@ -83,6 +84,7 @@ export const BasicDynamicExample: React.FC = () => {
           Waves
         </button>
         <button 
+          type="button"
           onClick={() => setEffect('birds')}
           disabled={isLoading}
         >
@@ -103,121 +105,6 @@ export const BasicDynamicExample: React.FC = () => {
         zIndex: 10
       }}>
         Status: {isLoading ? 'Loading...' : isLoaded ? 'Loaded' : 'Ready'}
-      </div>
-    </div>
-  );
-};
-
-/**
- * 프리로딩 예제
- * 여러 효과를 미리 로드하여 빠른 전환을 제공합니다.
- */
-export const PreloadingExample: React.FC = () => {
-  const [effect, setEffect] = useState<VantaEffectName>('net');
-  const [enablePreload, setEnablePreload] = useState(false);
-  
-  // 프리로드할 효과들
-  const effectsToPreload: VantaEffectName[] = ['net', 'waves', 'birds', 'cells'];
-  
-  const { 
-    isPreloading, 
-    preloadError, 
-    loadedCount, 
-    totalCount, 
-    progress, 
-    isComplete 
-  } = useVantaPreloader(enablePreload ? effectsToPreload : []);
-
-  return (
-    <div style={{ width: '100%', height: '500px', position: 'relative' }}>
-      {/* 프리로딩 컨트롤 */}
-      <div style={{
-        position: 'absolute',
-        top: '10px',
-        left: '10px',
-        background: 'rgba(0,0,0,0.8)',
-        color: 'white',
-        padding: '15px',
-        borderRadius: '8px',
-        zIndex: 10,
-        minWidth: '200px'
-      }}>
-        <div style={{ marginBottom: '10px' }}>
-          <label>
-            <input
-              type="checkbox"
-              checked={enablePreload}
-              onChange={(e) => setEnablePreload(e.target.checked)}
-              style={{ marginRight: '8px' }}
-            />
-            Enable Preloading
-          </label>
-        </div>
-        
-        {enablePreload && (
-          <div>
-            <div style={{ marginBottom: '5px' }}>
-              Progress: {loadedCount}/{totalCount} ({progress.toFixed(0)}%)
-            </div>
-            <div style={{
-              width: '100%',
-              height: '6px',
-              background: 'rgba(255,255,255,0.3)',
-              borderRadius: '3px',
-              overflow: 'hidden'
-            }}>
-              <div style={{
-                width: `${progress}%`,
-                height: '100%',
-                background: isComplete ? '#4CAF50' : '#2196F3',
-                transition: 'width 0.3s ease'
-              }} />
-            </div>
-            {isPreloading && <div style={{ fontSize: '12px', marginTop: '5px' }}>Loading...</div>}
-            {preloadError && <div style={{ fontSize: '12px', color: '#ff6b6b', marginTop: '5px' }}>Error: {preloadError}</div>}
-            {isComplete && <div style={{ fontSize: '12px', color: '#4CAF50', marginTop: '5px' }}>All effects loaded!</div>}
-          </div>
-        )}
-      </div>
-
-      {/* Vanta 컴포넌트 */}
-      <Vanta
-        effect={effect}
-        background={false}
-        options={{
-          color: 0x8b5cf6,
-          waveHeight: 25,
-          waveSpeed: 1,
-        }}
-      />
-
-      {/* 효과 선택 버튼들 */}
-      <div style={{
-        position: 'absolute',
-        bottom: '20px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        zIndex: 10,
-        display: 'flex',
-        gap: '10px'
-      }}>
-        {effectsToPreload.map((effectName) => (
-          <button
-            key={effectName}
-            onClick={() => setEffect(effectName)}
-            style={{
-              padding: '10px 20px',
-              border: 'none',
-              borderRadius: '6px',
-              background: effect === effectName ? '#8b5cf6' : '#4a5568',
-              color: 'white',
-              cursor: 'pointer',
-              textTransform: 'capitalize'
-            }}
-          >
-            {effectName}
-          </button>
-        ))}
       </div>
     </div>
   );
@@ -313,6 +200,12 @@ export const ConditionalLoadingExample: React.FC = () => {
   );
 };
 
+interface MemoryInfo {
+  usedJSHeapSize: number;
+  totalJSHeapSize: number;
+  jsHeapSizeLimit: number;
+}
+
 /**
  * 성능 모니터링 예제
  * 로딩 시간과 메모리 사용량을 추적합니다.
@@ -320,7 +213,7 @@ export const ConditionalLoadingExample: React.FC = () => {
 export const PerformanceMonitoringExample: React.FC = () => {
   const [effect, setEffect] = useState<VantaEffectName>('net');
   const [loadTime, setLoadTime] = useState<number | null>(null);
-  const [memoryInfo, setMemoryInfo] = useState<any>(null);
+  const [memoryInfo, setMemoryInfo] = useState<MemoryInfo | null>(null);
 
   useEffect(() => {
     const startTime = performance.now();
@@ -334,7 +227,7 @@ export const PerformanceMonitoringExample: React.FC = () => {
     // 메모리 정보 가져오기 (Chrome에서만 사용 가능)
     const updateMemoryInfo = () => {
       if ('memory' in performance) {
-        setMemoryInfo((performance as any).memory);
+        setMemoryInfo((performance as unknown as { memory: MemoryInfo }).memory);
       }
     };
 
@@ -344,7 +237,7 @@ export const PerformanceMonitoringExample: React.FC = () => {
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [effect]);
+  }, []); // effect 의존성 제거
 
   return (
     <div style={{ width: '100%', height: '400px', position: 'relative' }}>

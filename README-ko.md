@@ -179,7 +179,7 @@ pnpm build
 Vanta React는 **동적 import**를 사용하여 필요한 효과만 로드하므로 초기 번들 크기를 크게 줄입니다.
 
 ```tsx
-import { Vanta, useVantaEffect, preloadVantaEffects } from 'vanta-react';
+import { Vanta, useVantaEffect } from 'vanta-react';
 
 // 효과는 처음 사용될 때 동적으로 로드됩니다
 function DynamicLoadingExample() {
@@ -195,43 +195,6 @@ function DynamicLoadingExample() {
   );
 }
 ```
-
-### 더 나은 UX를 위한 프리로딩
-자주 사용하는 효과들은 미리 로드하여 로딩 지연을 없앨 수 있습니다:
-
-```tsx
-import { useVantaPreloader } from 'vanta-react';
-
-function PreloadingExample() {
-  const effectsToPreload = ['net', 'waves', 'birds'];
-  const { 
-    isPreloading, 
-    progress, 
-    isComplete, 
-    cancelPreloading 
-  } = useVantaPreloader(effectsToPreload);
-
-  return (
-    <div>
-      {isPreloading && (
-        <div>
-          <div>프리로딩 중: {progress.toFixed(0)}%</div>
-          <button onClick={cancelPreloading}>취소</button>
-        </div>
-      )}
-      {isComplete && <div>모든 효과 준비 완료!</div>}
-      {/* Vanta 컴포넌트들 */}
-    </div>
-  );
-}
-```
-
-#### 성능 개선된 Preloading 기능
-- **순차적 로딩**: 브라우저 응답성을 위해 효과를 하나씩 순차적으로 로드
-- **취소 가능**: 사용자가 언제든지 preloading을 중단 가능
-- **실시간 진행률**: 로딩 진행 상황을 실시간으로 표시
-- **성능 모니터링**: 개발 모드에서 메모리 사용량과 로딩 시간 추적
-- **에러 복구**: 개별 효과 로딩 실패 시에도 다른 효과들은 계속 로드
 
 ### 번들 크기 분석
 - **메인 번들**: ~22 kB (핵심 라이브러리)
@@ -282,32 +245,22 @@ useEffect(() => {
 ```
 
 #### 4. 성능 모니터링 (개발 모드)
-개발 모드에서는 preloading 성능을 자동으로 모니터링합니다:
+개발 모드에서는 효과 로딩 성능을 모니터링할 수 있습니다:
 
 ```tsx
-import { 
-  isPerformanceMonitoringEnabled,
-  getMemoryUsage,
-  type PerformanceMetrics 
-} from 'vanta-react';
-
 function PerformanceExample() {
   useEffect(() => {
-    if (isPerformanceMonitoringEnabled()) {
-      console.log('Performance monitoring is active');
-      console.log(`Current memory usage: ${getMemoryUsage()} bytes`);
-    }
+    const start = performance.now();
+    
+    return () => {
+      const end = performance.now();
+      console.log(`Vanta 렌더링 시간: ${end - start}ms`);
+    };
   }, []);
 
-  return <div>/* 컴포넌트 내용 */</div>;
+  return <Vanta effect="net" background={true} />;
 }
 ```
-
-**자동 성능 로깅 정보:**
-- 로딩 시작/완료 시간
-- 메모리 사용량 변화
-- 효과별 평균 로딩 시간
-- 에러 발생 시 상세 정보
 
 ## 고급 사용법
 

@@ -7,7 +7,6 @@ export * from './types';
 // 유틸리티 함수 export
 export {
   loadVantaEffect,
-  preloadVantaEffects,
   getAvailableEffects,
   getCachedEffects,
   clearEffectCache,
@@ -26,5 +25,4 @@ export {
 // 커스텀 훅 export
 export {
   useVantaEffect,
-  useVantaPreloader,
 } from './hooks/use-vanta';
