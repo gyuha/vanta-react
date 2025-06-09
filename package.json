@@ -1,0 +1,48 @@
+{
+  "name": "vanta-react-backgrounds",
+  "version": "1.0.0",
+  "description": "React components for Vanta.js animated backgrounds with TypeScript support",
+  "main": "dist/index.js",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "react",
+    "vanta",
+    "background",
+    "animation",
+    "threejs",
+    "typescript"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "preview": "vite preview",
+    "prepublishOnly": "pnpm build"
+  },
+  "peerDependencies": {
+    "react": "^16.0.0",
+    "three": "^0.140.2"
+  },
+  "dependencies": {
+    "vanta": "^0.5.24"
+  },
+  "devDependencies": {
+    "@types/react": "^16.14.34",
+    "@types/react-dom": "^16.9.16",
+    "@types/three": "^0.141.0",
+    "react-dom": "^16.14.0",
+    "typescript": "^4.9.5",
+    "vite": "^4.5.2",
+    "vite-plugin-dts": "^3.7.2"
+  },
+  "packageManager": "pnpm@8.15.1",
+  "license": "MIT",
+  "author": "Your Name",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/vanta-react-backgrounds.git"
+  }
+}
