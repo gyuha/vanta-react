@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
+import type React from 'react';
 import * as THREE from 'three';
 import type { VantaProps, VantaEffect } from '../types';
 import { loadVantaEffect } from '../utils/vanta-loader';
@@ -21,8 +22,30 @@ const Vanta: React.FC<VantaProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
+  // options 객체의 불필요한 재생성을 방지하기 위한 메모이제이션
+  const memoizedOptions = useMemo(() => options, [options]);
+
+  // 리사이즈 핸들러를 useCallback으로 최적화
+  const createResizeHandler = useCallback(() => {
+    return () => {
+      if (vantaEffectRef.current && vantaRef.current) {
+        const element = vantaRef.current;
+        element.style.width = '100vw';
+        element.style.height = '100vh';
+        if (vantaEffectRef.current.resize) {
+          vantaEffectRef.current.resize();
+        }
+      }
+    };
+  }, []);
+
   useEffect(() => {
     let isMounted = true; // 클린업 함수에서의 비동기 작업 충돌을 방지하기 위한 플래그
+
+    // 개발 모드에서 useEffect 실행 로깅
+    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+      console.debug('[Vanta] useEffect triggered:', { effect, background, optionsKeys: Object.keys(memoizedOptions || {}) });
+    }
 
     const initializeVantaEffect = async () => {
       if (!vantaRef.current || !effect) return;
@@ -77,7 +100,7 @@ const Vanta: React.FC<VantaProps> = ({
               scale: 1.00,
               scaleMobile: 1.00,
             },
-            ...options,
+            ...memoizedOptions,
           });
 
           // 배경 모드일 때 추가 설정 및 리사이즈 이벤트 처리
@@ -91,16 +114,7 @@ const Vanta: React.FC<VantaProps> = ({
               }
             }, 100);
 
-            const handleResize = () => {
-              if (vantaEffectRef.current && vantaRef.current) {
-                const element = vantaRef.current;
-                element.style.width = '100vw';
-                element.style.height = '100vh';
-                if (vantaEffectRef.current.resize) {
-                  vantaEffectRef.current.resize();
-                }
-              }
-            };
+            const handleResize = createResizeHandler();
 
             window.addEventListener('resize', handleResize);
             
@@ -138,7 +152,7 @@ const Vanta: React.FC<VantaProps> = ({
         vantaEffectRef.current = null; // 참조를 명시적으로 null로 만들어 가비지 컬렉션을 돕습니다.
       }
     };
-  }, [effect, options, background]); // background prop도 의존성에 추가
+  }, [effect, memoizedOptions, background, createResizeHandler]); // memoizedOptions와 createResizeHandler 사용으로 불필요한 재실행 방지
 
   // background prop에 따라 다른 스타일을 적용합니다.
   const baseClassName = background
