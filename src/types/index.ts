@@ -22,10 +22,12 @@ export type VantaEffectName =
 /**
  * Vanta.js 효과 인스턴스의 타입을 정의하는 인터페이스입니다.
  * Vanta 인스턴스는 다양한 내부 속성을 가지지만, 외부에서 제어할 때 가장 중요한 것은
- * 메모리 해제를 위한 destroy 메서드입니다.
+ * 메모리 해제를 위한 destroy 메서드와 크기 조정을 위한 resize 메서드입니다.
  */
 export interface VantaEffect {
   destroy: () => void;
+  resize?: () => void;
+  [key: string]: any; // 기타 Vanta 인스턴스의 속성들
 }
 
 /**
