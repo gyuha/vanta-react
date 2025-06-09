@@ -27,8 +27,153 @@ const effectOptions = [
   'waves',
 ] as const;
 
+// 각 효과별 기본 옵션 정의
+const getEffectOptions = (effect: VantaEffectName) => {
+  const baseOptions = {
+    mouseControls: true,
+    touchControls: true,
+    gyroControls: false,
+  };
+
+  switch (effect) {
+    case 'birds':
+      return {
+        ...baseOptions,
+        backgroundColor: 0x07192F,
+        color1: 0xff0000,
+        color2: 0x00d1ff,
+        colorMode: 'varianceGradient',
+        birdSize: 1,
+        wingSpan: 30,
+        speedLimit: 5,
+        separation: 20,
+        alignment: 20,
+        cohesion: 20,
+        quantity: 5,
+      };
+    case 'cells':
+      return {
+        ...baseOptions,
+        color1: 0x3f7fb3,
+        color2: 0x1e3a8a,
+        size: 1.5,
+        speed: 1,
+      };
+    case 'clouds':
+      return {
+        ...baseOptions,
+        backgroundColor: 0x87CEEB,
+        skyColor: 0x87CEEB,
+        cloudColor: 0xffffff,
+        cloudShadowColor: 0x183550,
+        sunColor: 0xffffff,
+        sunGlareColor: 0xffffff,
+        sunlightColor: 0xffffff,
+        speed: 1,
+      };
+    case 'clouds2':
+      return {
+        ...baseOptions,
+        backgroundColor: 0x87CEEB,
+        skyColor: 0x87CEEB,
+        cloudColor: 0xffffff,
+        lightColor: 0xffffff,
+        speed: 1,
+      };
+    case 'fog':
+      return {
+        ...baseOptions,
+        highlightColor: 0xff8a80,
+        midtoneColor: 0xff5722,
+        lowlightColor: 0xffccbc,
+        baseColor: 0xffcc02,
+        blurFactor: 0.6,
+        zoom: 1,
+        speed: 1.2,
+      };
+    case 'globe':
+      return {
+        ...baseOptions,
+        backgroundColor: 0x222426,
+        color: 0x3f7fb3,
+        color2: 0x1e3a8a,
+        size: 1,
+      };
+    case 'net':
+      return {
+        ...baseOptions,
+        color: 0x3f7fb3,
+        backgroundColor: 0x222426,
+        points: 8,
+        maxDistance: 23,
+        spacing: 17,
+        showDots: true,
+      };
+    case 'rings':
+      return {
+        ...baseOptions,
+        color: 0x3f7fb3,
+        backgroundColor: 0x222426,
+        backgroundAlpha: 1,
+      };
+    case 'halo':
+      return {
+        ...baseOptions,
+        backgroundColor: 0x000814,
+        baseColor: 0x3f7fb3,
+        size: 1.2,
+        amplitudeFactor: 1,
+        xOffset: 0,
+        yOffset: 0,
+      };
+    case 'ripple':
+      return {
+        ...baseOptions,
+        color1: 0x3f7fb3,
+        color2: 0x1e3a8a,
+      };
+    case 'dots':
+      return {
+        ...baseOptions,
+        backgroundColor: 0x222426,
+        color: 0x3f7fb3,
+        color2: 0x1e3a8a,
+        size: 2,
+        spacing: 30,
+      };
+    case 'topology':
+      return {
+        ...baseOptions,
+        backgroundColor: 0x222426,
+        color: 0x3f7fb3,
+      };
+    case 'trunk':
+      return {
+        ...baseOptions,
+        color: 0x98465f,
+        backgroundColor: 0x222426,
+        spacing: 0,
+        chaos: 1,
+      };
+    case 'waves':
+      return {
+        ...baseOptions,
+        color: 0x3f7fb3,
+        shininess: 30,
+        waveHeight: 15,
+        waveSpeed: 1,
+        zoom: 0.75,
+      };
+    default:
+      return {
+        ...baseOptions,
+        color: 0x3f7fb3,
+      };
+  }
+};
+
 const DemoApp: React.FC = () => {
-  const [currentEffect, setCurrentEffect] = useState<VantaEffectName>('net');
+  const [currentEffect, setCurrentEffect] = useState<VantaEffectName>('birds');
   const [backgroundMode, setBackgroundMode] = useState<boolean>(true);
   const [showPerformanceInfo, setShowPerformanceInfo] = useState<boolean>(false);
 
@@ -66,12 +211,7 @@ const DemoApp: React.FC = () => {
       <Vanta
         effect={currentEffect}
         background={backgroundMode}
-        options={{
-          color: 0x3f7fb3,
-          points: 8.00,
-          maxDistance: 23.00,
-          spacing: 17.00,
-        }}
+        options={getEffectOptions(currentEffect)}
       />
 
       {/* 컨트롤 패널 */}
@@ -162,6 +302,20 @@ const DemoApp: React.FC = () => {
             <div className="text-sm text-gray-600 mt-4">
               <p>Current Effect: <strong>{currentEffect}</strong></p>
               <p>Background Mode: <strong>{backgroundMode ? 'On' : 'Off'}</strong></p>
+              
+              {/* 원본 테스트 링크 추가 */}
+              <div className="mt-3 p-2 bg-blue-50 rounded border border-blue-200">
+                <p className="text-xs text-blue-700 font-medium mb-1">원본 테스트 링크:</p>
+                <a 
+                  href={`https://www.vantajs.com/?effect=${currentEffect}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-600 hover:text-blue-800 underline break-all"
+                >
+                  https://www.vantajs.com/?effect={currentEffect}
+                </a>
+              </div>
+              
               {showPerformanceInfo && (
                 <div className="mt-4">
                   <p>Available Effects: <strong>{performanceInfo.availableEffects}</strong></p>
@@ -185,12 +339,7 @@ const DemoApp: React.FC = () => {
                   effect={currentEffect}
                   background={false}
                   className="rounded-lg"
-                  options={{
-                    color: 0x3f7fb3,
-                    points: 8.00,
-                    maxDistance: 23.00,
-                    spacing: 17.00,
-                  }}
+                  options={getEffectOptions(currentEffect)}
                 />
               </div>
               <p className="text-sm text-gray-600 mt-2">
