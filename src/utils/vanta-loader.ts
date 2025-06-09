@@ -1,4 +1,10 @@
-import type { VantaCreator } from '../types';
+import type { VantaCreator, PreloadOptions } from '../types';
+import { 
+  startPerformanceMonitoring, 
+  finishPerformanceMonitoring, 
+  logProgress,
+  type PerformanceMetrics 
+} from './performance-monitor';
 
 // 동적 import를 위한 효과 모듈 매핑
 const VANTA_EFFECT_MODULES: Record<string, () => Promise<{ default: VantaCreator }>> = {
@@ -79,10 +85,66 @@ export const loadVantaEffect = async (effectName: string): Promise<VantaCreator 
 
 /**
  * 여러 효과를 미리 로드하는 함수 (프리로딩)
+ * 순차적 로딩을 통해 브라우저 응답성을 보장하고 취소 기능을 제공합니다.
  */
-export const preloadVantaEffects = async (effectNames: string[]): Promise<void> => {
-  const loadPromises = effectNames.map(name => loadVantaEffect(name));
-  await Promise.all(loadPromises);
+export const preloadVantaEffects = async (
+  effectNames: string[],
+  options?: PreloadOptions
+): Promise<void> => {
+  const { signal, onProgress, delayBetweenLoads = 100 } = options || {};
+  
+  // 성능 모니터링 시작
+  const performanceMetrics = startPerformanceMonitoring();
+  let effectsLoaded = 0;
+  
+  try {
+    for (let i = 0; i < effectNames.length; i++) {
+      // AbortSignal을 통한 취소 확인
+      if (signal?.aborted) {
+        const abortError = new Error('Preloading cancelled');
+        abortError.name = 'AbortError';
+        throw abortError;
+      }
+      
+      try {
+        // 효과를 순차적으로 로드
+        await loadVantaEffect(effectNames[i]);
+        effectsLoaded++;
+        
+        // 진행률 콜백 호출
+        onProgress?.(i + 1, effectNames.length);
+        
+        // 성능 모니터링용 진행률 로깅
+        logProgress(i + 1, effectNames.length);
+        
+        // 메인 스레드에 여유 시간 제공 (마지막 아이템이 아닌 경우)
+        if (i < effectNames.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, delayBetweenLoads));
+        }
+      } catch (error) {
+        // 취소 에러인 경우 즉시 전파
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw error;
+        }
+        
+        // 개별 효과 로드 실패 시 경고 로그 출력하고 진행률 업데이트 후 다음으로 계속
+        console.warn(`Failed to preload effect "${effectNames[i]}":`, error);
+        onProgress?.(i + 1, effectNames.length);
+        
+        if (i < effectNames.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, delayBetweenLoads));
+        }
+      }
+    }
+    
+    // 성공적으로 완료
+    finishPerformanceMonitoring(performanceMetrics, effectsLoaded, true);
+  } catch (error) {
+    // 에러 발생 시 성능 모니터링 완료
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    finishPerformanceMonitoring(performanceMetrics, effectsLoaded, false, errorMessage);
+    throw error;
+  }
 };
 
 /**

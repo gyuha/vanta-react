@@ -220,17 +220,34 @@ import { useVantaPreloader } from 'vanta-react';
 
 function PreloadingExample() {
   const effectsToPreload = ['net', 'waves', 'birds'];
-  const { isPreloading, progress, isComplete } = useVantaPreloader(effectsToPreload);
+  const { 
+    isPreloading, 
+    progress, 
+    isComplete, 
+    cancelPreloading 
+  } = useVantaPreloader(effectsToPreload);
 
   return (
     <div>
-      {isPreloading && <div>Preloading: {progress}%</div>}
+      {isPreloading && (
+        <div>
+          <div>Preloading: {progress.toFixed(0)}%</div>
+          <button onClick={cancelPreloading}>Cancel</button>
+        </div>
+      )}
       {isComplete && <div>All effects ready!</div>}
       {/* Your Vanta components */}
     </div>
   );
 }
 ```
+
+#### Enhanced Preloading Features
+- **Sequential Loading**: Effects load one by one to maintain browser responsiveness
+- **Cancellable**: Users can cancel preloading at any time
+- **Real-time Progress**: Live progress updates during loading
+- **Performance Monitoring**: Memory usage and loading time tracking in development mode
+- **Error Recovery**: Individual effect failures don't stop other effects from loading
 
 ### Bundle Size Analysis
 - **Main bundle**: ~22 kB (core library)
@@ -279,3 +296,31 @@ useEffect(() => {
   };
 }, []);
 ```
+
+#### 4. Performance Monitoring (Development Mode)
+Performance monitoring is automatically enabled in development mode:
+
+```tsx
+import { 
+  isPerformanceMonitoringEnabled,
+  getMemoryUsage,
+  type PerformanceMetrics 
+} from 'vanta-react';
+
+function PerformanceExample() {
+  useEffect(() => {
+    if (isPerformanceMonitoringEnabled()) {
+      console.log('Performance monitoring is active');
+      console.log(`Current memory usage: ${getMemoryUsage()} bytes`);
+    }
+  }, []);
+
+  return <div>/* Component content */</div>;
+}
+```
+
+**Automatic Performance Logging:**
+- Loading start/completion times
+- Memory usage changes
+- Average loading time per effect
+- Detailed error information when failures occur

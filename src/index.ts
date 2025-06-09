@@ -13,6 +13,16 @@ export {
   clearEffectCache,
 } from './utils/vanta-loader';
 
+// 성능 모니터링 함수 export (개발 모드에서 사용)
+export {
+  isPerformanceMonitoringEnabled,
+  getMemoryUsage,
+  startPerformanceMonitoring,
+  finishPerformanceMonitoring,
+  logProgress,
+  type PerformanceMetrics,
+} from './utils/performance-monitor';
+
 // 커스텀 훅 export
 export {
   useVantaEffect,

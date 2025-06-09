@@ -41,7 +41,8 @@ const DemoApp: React.FC = () => {
     loadedCount, 
     totalCount, 
     progress, 
-    isComplete 
+    isComplete,
+    cancelPreloading 
   } = useVantaPreloader(enablePreload ? preloadEffects : []);
 
   // 성능 정보 업데이트
@@ -152,15 +153,35 @@ const DemoApp: React.FC = () => {
               </label>
               {enablePreload && (
                 <div className="mt-2 p-2 bg-gray-50 rounded text-xs">
-                  <div>Progress: {loadedCount}/{totalCount} ({progress.toFixed(0)}%)</div>
+                  <div className="flex justify-between items-center mb-1">
+                    <span>Progress: {loadedCount}/{totalCount} ({progress.toFixed(0)}%)</span>
+                    {isPreloading && (
+                      <button 
+                        onClick={cancelPreloading}
+                        className="text-red-600 hover:text-red-800 text-xs px-2 py-1 border border-red-300 rounded hover:bg-red-50 transition-colors"
+                        title="Cancel preloading"
+                      >
+                        ❌ Cancel
+                      </button>
+                    )}
+                  </div>
                   <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
                     <div 
                       className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
                       style={{ width: `${progress}%` }}
                     />
                   </div>
-                  {isPreloading && <div className="text-blue-600 mt-1">🔄 Loading effects...</div>}
-                  {isComplete && <div className="text-green-600 mt-1">✅ All effects loaded!</div>}
+                  {isPreloading && (
+                    <div className="text-blue-600 mt-1">
+                      🔄 Loading effects... (Sequential loading for better performance)
+                    </div>
+                  )}
+                  {isComplete && !isPreloading && (
+                    <div className="text-green-600 mt-1">✅ All effects loaded!</div>
+                  )}
+                  {!isPreloading && !isComplete && loadedCount === 0 && (
+                    <div className="text-gray-600 mt-1">⚡ Ready to preload {totalCount} effects</div>
+                  )}
                 </div>
               )}
             </div>

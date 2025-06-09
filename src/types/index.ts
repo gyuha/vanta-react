@@ -52,3 +52,37 @@ export interface VantaProps {
   /** true로 설정하면 화면 전체를 덮는 배경으로 동작합니다 (fixed positioning, full screen) */
   background?: boolean;
 }
+
+/**
+ * preloadVantaEffects 함수에 전달할 수 있는 옵션들을 정의하는 인터페이스입니다.
+ * 순차적 로딩, 취소 기능, 진행률 콜백 등의 고급 기능을 지원합니다.
+ */
+export interface PreloadOptions {
+  /** 비동기 작업을 취소하기 위한 AbortSignal */
+  signal?: AbortSignal;
+  /** 로딩 진행률을 받을 콜백 함수 (loaded: 완료된 항목 수, total: 전체 항목 수) */
+  onProgress?: (loaded: number, total: number) => void;
+  /** 각 효과 로딩 사이의 지연 시간 (밀리초, 기본값: 100ms) */
+  delayBetweenLoads?: number;
+}
+
+/**
+ * useVantaPreloader 훅이 반환하는 값들의 타입을 정의하는 인터페이스입니다.
+ * preloading 상태와 진행률, 취소 기능을 포함합니다.
+ */
+export interface VantaPreloaderResult {
+  /** 현재 preloading이 진행 중인지 여부 */
+  isPreloading: boolean;
+  /** preloading 중 발생한 에러 메시지 (에러가 없으면 null) */
+  preloadError: string | null;
+  /** 현재까지 로드된 효과의 개수 */
+  loadedCount: number;
+  /** 로드해야 할 전체 효과의 개수 */
+  totalCount: number;
+  /** 진행률 (0-100 사이의 숫자) */
+  progress: number;
+  /** 모든 효과의 로딩이 완료되었는지 여부 */
+  isComplete: boolean;
+  /** 진행 중인 preloading을 취소하는 함수 */
+  cancelPreloading: () => void;
+}

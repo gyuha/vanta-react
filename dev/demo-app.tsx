@@ -5,7 +5,9 @@ import {
   useVantaEffect, 
   useVantaPreloader, 
   getAvailableEffects,
-  getCachedEffects 
+  getCachedEffects,
+  isPerformanceMonitoringEnabled,
+  getMemoryUsage 
 } from '../src';
 
 const effectOptions = [
@@ -41,7 +43,8 @@ const DemoApp: React.FC = () => {
     loadedCount, 
     totalCount, 
     progress, 
-    isComplete 
+    isComplete,
+    cancelPreloading 
   } = useVantaPreloader(enablePreload ? preloadEffects : []);
 
   // 성능 정보 업데이트
@@ -49,6 +52,8 @@ const DemoApp: React.FC = () => {
     availableEffects: 0,
     cachedEffects: 0,
     loadTime: 0,
+    memoryUsage: 0,
+    performanceMonitoringEnabled: false,
   });
 
   useEffect(() => {
@@ -57,6 +62,8 @@ const DemoApp: React.FC = () => {
         availableEffects: getAvailableEffects().length,
         cachedEffects: getCachedEffects().length,
         loadTime: performance.now(),
+        memoryUsage: getMemoryUsage(),
+        performanceMonitoringEnabled: isPerformanceMonitoringEnabled(),
       });
     };
 
@@ -147,15 +154,35 @@ const DemoApp: React.FC = () => {
               </label>
               {enablePreload && (
                 <div className="mt-2 p-2 bg-gray-50 rounded text-xs">
-                  <div>Progress: {loadedCount}/{totalCount} ({progress.toFixed(0)}%)</div>
+                  <div className="flex justify-between items-center mb-1">
+                    <span>Progress: {loadedCount}/{totalCount} ({progress.toFixed(0)}%)</span>
+                    {isPreloading && (
+                      <button 
+                        onClick={cancelPreloading}
+                        className="text-red-600 hover:text-red-800 text-xs px-2 py-1 border border-red-300 rounded hover:bg-red-50 transition-colors"
+                        title="Cancel preloading"
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </div>
                   <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
                     <div 
                       className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
                       style={{ width: `${progress}%` }}
                     ></div>
                   </div>
-                  {isPreloading && <div className="text-blue-600 mt-1">Loading effects...</div>}
-                  {isComplete && <div className="text-green-600 mt-1">All effects loaded!</div>}
+                  {isPreloading && (
+                    <div className="text-blue-600 mt-1">
+                      Loading effects... (Sequential loading for better performance)
+                    </div>
+                  )}
+                  {isComplete && !isPreloading && (
+                    <div className="text-green-600 mt-1">All effects loaded!</div>
+                  )}
+                  {!isPreloading && !isComplete && loadedCount === 0 && (
+                    <div className="text-gray-600 mt-1">Ready to preload {totalCount} effects</div>
+                  )}
                 </div>
               )}
             </div>
@@ -175,6 +202,13 @@ const DemoApp: React.FC = () => {
                   <div><strong>Cached Effects:</strong> {performanceInfo.cachedEffects}</div>
                   <div><strong>Current Effect:</strong> {currentEffect} {isLoaded ? '✓' : '⏳'}</div>
                   <div><strong>Cache Status:</strong> {getCachedEffects().join(', ') || 'None cached'}</div>
+                  {performanceInfo.memoryUsage > 0 && (
+                    <div><strong>Memory Usage:</strong> {(performanceInfo.memoryUsage / 1024 / 1024).toFixed(2)} MB</div>
+                  )}
+                  <div><strong>Performance Monitoring:</strong> {performanceInfo.performanceMonitoringEnabled ? '✅ Enabled' : '❌ Disabled'}</div>
+                  <div className="text-gray-500 text-xs mt-2">
+                    💡 Check the browser console for detailed preloading performance logs!
+                  </div>
                 </div>
               )}
             </div>
