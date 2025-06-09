@@ -188,3 +188,94 @@ Bug reports, feature requests, and Pull Requests are welcome!
 - Vanta.js depends on Three.js, so Three.js must be installed alongside this library.
 - We recommend using Three.js version 0.140.2 for compatibility.
 - Memory cleanup is automatically performed when the component is unmounted.
+
+## Performance Optimization
+
+### Dynamic Loading
+Vanta React uses **dynamic imports** to load effects only when needed, significantly reducing the initial bundle size.
+
+```tsx
+import { Vanta, useVantaEffect, preloadVantaEffects } from 'vanta-react';
+
+// Effects are loaded dynamically when first used
+function DynamicLoadingExample() {
+  const [effect, setEffect] = useState<VantaEffectName>('net');
+  const { isLoading, error, isLoaded } = useVantaEffect(effect);
+
+  return (
+    <div>
+      {isLoading && <div>Loading {effect} effect...</div>}
+      {error && <div>Error: {error}</div>}
+      <Vanta effect={effect} background={true} />
+    </div>
+  );
+}
+```
+
+### Preloading for Better UX
+For frequently used effects, you can preload them to eliminate loading delays:
+
+```tsx
+import { useVantaPreloader } from 'vanta-react';
+
+function PreloadingExample() {
+  const effectsToPreload = ['net', 'waves', 'birds'];
+  const { isPreloading, progress, isComplete } = useVantaPreloader(effectsToPreload);
+
+  return (
+    <div>
+      {isPreloading && <div>Preloading: {progress}%</div>}
+      {isComplete && <div>All effects ready!</div>}
+      {/* Your Vanta components */}
+    </div>
+  );
+}
+```
+
+### Bundle Size Analysis
+- **Main bundle**: ~22 kB (core library)
+- **Individual effects**: 10-36 kB each (loaded on demand)
+- **Total if all effects loaded**: ~250 kB
+- **Typical usage**: 22-58 kB (1-2 effects)
+
+### Performance Tips
+
+#### 1. Effect Caching
+```tsx
+// Effects are automatically cached after first load
+const [effect, setEffect] = useState('net');
+
+// Switching back to 'net' later will be instant
+setEffect('waves'); // Loads waves effect
+setEffect('net');   // Uses cached version
+```
+
+#### 2. Conditional Loading
+```tsx
+// Only load effects when actually needed
+function ConditionalExample() {
+  const [showBackground, setShowBackground] = useState(false);
+  
+  return (
+    <div>
+      {showBackground && <Vanta effect="waves" background={true} />}
+      <button onClick={() => setShowBackground(!showBackground)}>
+        Toggle Background
+      </button>
+    </div>
+  );
+}
+```
+
+#### 3. Memory Management
+```tsx
+// Components automatically clean up when unmounted
+useEffect(() => {
+  // Optional: Clear cache when component unmounts
+  return () => {
+    if (shouldClearCache) {
+      clearEffectCache();
+    }
+  };
+}, []);
+```

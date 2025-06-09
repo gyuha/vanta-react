@@ -173,41 +173,73 @@ pnpm dev
 pnpm build
 ```
 
-## 성능 최적화 팁
+## 성능 최적화
 
-### 1. 필요한 효과만 import
+### 동적 로딩
+Vanta React는 **동적 import**를 사용하여 필요한 효과만 로드하므로 초기 번들 크기를 크게 줄입니다.
+
 ```tsx
-// 권장: 정적 import로 최적화
-import { Vanta } from 'vanta-react';
+import { Vanta, useVantaEffect, preloadVantaEffects } from 'vanta-react';
 
-// 사용할 효과만 명시적으로 선택
-<Vanta effect="net" />
-```
+// 효과는 처음 사용될 때 동적으로 로드됩니다
+function DynamicLoadingExample() {
+  const [effect, setEffect] = useState<VantaEffectName>('net');
+  const { isLoading, error, isLoaded } = useVantaEffect(effect);
 
-### 2. 옵션 메모이제이션
-```tsx
-import React, { useMemo } from 'react';
-import { Vanta } from 'vanta-react';
-
-function OptimizedComponent() {
-  const vantaOptions = useMemo(() => ({
-    color: 0x3f7fb3,
-    points: 8.00,
-    maxDistance: 23.00,
-  }), []);
-
-  return <Vanta effect="net" options={vantaOptions} />;
+  return (
+    <div>
+      {isLoading && <div>{effect} 효과 로딩 중...</div>}
+      {error && <div>오류: {error}</div>}
+      <Vanta effect={effect} background={true} />
+    </div>
+  );
 }
 ```
 
-### 3. 조건부 렌더링
+### 더 나은 UX를 위한 프리로딩
+자주 사용하는 효과들은 미리 로드하여 로딩 지연을 없앨 수 있습니다:
+
 ```tsx
-import React, { useState } from 'react';
-import { Vanta } from 'vanta-react';
+import { useVantaPreloader } from 'vanta-react';
 
-function ConditionalBackground() {
-  const [showBackground, setShowBackground] = useState(true);
+function PreloadingExample() {
+  const effectsToPreload = ['net', 'waves', 'birds'];
+  const { isPreloading, progress, isComplete } = useVantaPreloader(effectsToPreload);
 
+  return (
+    <div>
+      {isPreloading && <div>프리로딩 중: {progress}%</div>}
+      {isComplete && <div>모든 효과 준비 완료!</div>}
+      {/* Vanta 컴포넌트들 */}
+    </div>
+  );
+}
+```
+
+### 번들 크기 분석
+- **메인 번들**: ~22 kB (핵심 라이브러리)
+- **개별 효과**: 각각 10-36 kB (필요시 로드)
+- **모든 효과 로드시 총합**: ~250 kB
+- **일반적인 사용**: 22-58 kB (1-2개 효과)
+
+### 성능 최적화 팁
+
+#### 1. 효과 캐싱
+```tsx
+// 효과는 첫 로드 후 자동으로 캐시됩니다
+const [effect, setEffect] = useState('net');
+
+// 나중에 'net'으로 다시 전환하면 즉시 표시됩니다
+setEffect('waves'); // waves 효과 로드
+setEffect('net');   // 캐시된 버전 사용
+```
+
+#### 2. 조건부 로딩
+```tsx
+// 실제로 필요할 때만 효과를 로드합니다
+function ConditionalExample() {
+  const [showBackground, setShowBackground] = useState(false);
+  
   return (
     <div>
       {showBackground && <Vanta effect="waves" background={true} />}
@@ -217,6 +249,19 @@ function ConditionalBackground() {
     </div>
   );
 }
+```
+
+#### 3. 메모리 관리
+```tsx
+// 컴포넌트는 언마운트 시 자동으로 정리됩니다
+useEffect(() => {
+  // 선택사항: 컴포넌트 언마운트 시 캐시 정리
+  return () => {
+    if (shouldClearCache) {
+      clearEffectCache();
+    }
+  };
+}, []);
 ```
 
 ## 고급 사용법

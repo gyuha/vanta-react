@@ -1,40 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { VantaProps, VantaEffect, VantaCreator } from '../types';
-
-// Vanta.js 효과들을 정적으로 import
-import BIRDS from 'vanta/dist/vanta.birds.min.js';
-import CELLS from 'vanta/dist/vanta.cells.min.js';
-import CLOUDS from 'vanta/dist/vanta.clouds.min.js';
-import CLOUDS2 from 'vanta/dist/vanta.clouds2.min.js';
-import FOG from 'vanta/dist/vanta.fog.min.js';
-import GLOBE from 'vanta/dist/vanta.globe.min.js';
-import NET from 'vanta/dist/vanta.net.min.js';
-import RINGS from 'vanta/dist/vanta.rings.min.js';
-import HALO from 'vanta/dist/vanta.halo.min.js';
-import RIPPLE from 'vanta/dist/vanta.ripple.min.js';
-import DOTS from 'vanta/dist/vanta.dots.min.js';
-import TOPOLOGY from 'vanta/dist/vanta.topology.min.js';
-import TRUNK from 'vanta/dist/vanta.trunk.min.js';
-import WAVES from 'vanta/dist/vanta.waves.min.js';
-
-// 효과 이름과 생성자 함수를 매핑하는 객체
-const VANTA_EFFECTS: Record<string, VantaCreator> = {
-  birds: BIRDS,
-  cells: CELLS,
-  clouds: CLOUDS,
-  clouds2: CLOUDS2,
-  fog: FOG,
-  globe: GLOBE,
-  net: NET,
-  rings: RINGS,
-  halo: HALO,
-  ripple: RIPPLE,
-  dots: DOTS,
-  topology: TOPOLOGY,
-  trunk: TRUNK,
-  waves: WAVES,
-};
+import type { VantaProps, VantaEffect } from '../types';
+import { loadVantaEffect } from '../utils/vanta-loader';
 
 /**
  * Vanta.js 효과를 React 컴포넌트로 래핑한 컴포넌트입니다.
@@ -50,22 +17,38 @@ const Vanta: React.FC<VantaProps> = ({
   const vantaEffectRef = useRef<VantaEffect | null>(null);
   // DOM 요소를 참조하는 ref
   const vantaRef = useRef<HTMLDivElement>(null);
+  // 로딩 상태 관리
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true; // 클린업 함수에서의 비동기 작업 충돌을 방지하기 위한 플래그
 
-    if (vantaRef.current && effect) {
+    const initializeVantaEffect = async () => {
+      if (!vantaRef.current || !effect) return;
+
       // 1. 기존 효과가 있다면 안전하게 파괴합니다.
       if (vantaEffectRef.current) {
         vantaEffectRef.current.destroy();
+        vantaEffectRef.current = null;
       }
 
-      // 2. 효과 이름에 해당하는 생성자 함수를 찾습니다.
-      const VantaCreator = VANTA_EFFECTS[effect.toLowerCase()];
-      
-      if (VantaCreator && isMounted && vantaRef.current) {
-        // 3. Vanta 효과 인스턴스를 생성하고 ref에 저장합니다.
-        try {
+      // 2. 로딩 상태 설정
+      setIsLoading(true);
+      setLoadError(null);
+
+      try {
+        // 3. 효과 모듈을 동적으로 로드합니다.
+        const VantaCreator = await loadVantaEffect(effect);
+        
+        if (!VantaCreator) {
+          setLoadError(`Effect "${effect}" not found`);
+          return;
+        }
+
+        // 4. 컴포넌트가 여전히 마운트되어 있고 DOM 요소가 존재하는지 확인
+        if (isMounted && vantaRef.current) {
+          // 5. Vanta 효과 인스턴스를 생성하고 ref에 저장합니다.
           vantaEffectRef.current = VantaCreator({
             el: vantaRef.current,
             THREE: THREE,
@@ -81,15 +64,20 @@ const Vanta: React.FC<VantaProps> = ({
             },
             ...options,
           });
-        } catch (error) {
-          console.error(`Vanta.js effect "${effect}" failed to initialize:`, error);
         }
-      } else if (!VantaCreator) {
-        console.error(`Vanta.js effect "${effect}" is not available. Available effects:`, Object.keys(VANTA_EFFECTS));
+      } catch (error) {
+        console.error(`Vanta.js effect "${effect}" failed to initialize:`, error);
+        setLoadError(`Failed to initialize effect "${effect}"`);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
-    }
+    };
 
-    // 4. 클린업 함수: 컴포넌트가 언마운트되거나 의존성이 변경될 때 호출됩니다.
+    initializeVantaEffect();
+
+    // 6. 클린업 함수: 컴포넌트가 언마운트되거나 의존성이 변경될 때 호출됩니다.
     return () => {
       isMounted = false;
       if (vantaEffectRef.current) {
@@ -104,10 +92,20 @@ const Vanta: React.FC<VantaProps> = ({
     ? 'fixed inset-0 w-full h-full -z-10' // 전체 화면 배경
     : 'w-full h-full'; // 일반 div
 
+  // 로딩 중이거나 에러가 있는 경우의 처리
+  if (loadError) {
+    console.warn(`Vanta effect load error: ${loadError}`);
+  }
+
   return (
     <div
       ref={vantaRef}
       className={`${baseClassName} ${className}`}
+      style={{
+        // 로딩 중일 때는 투명도를 낮춰서 시각적 피드백 제공 (선택사항)
+        opacity: isLoading ? 0.7 : 1,
+        transition: 'opacity 0.3s ease-in-out',
+      }}
     />
   );
 };

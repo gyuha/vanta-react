@@ -83,7 +83,7 @@ const DemoApp: React.FC = () => {
       <div className="relative z-10 p-8">
         <div className="bg-white/90 backdrop-blur-sm rounded-lg p-6 max-w-md">
           <h1 className="text-2xl font-bold mb-6 text-gray-800">
-            Vanta React Demo
+            Vanta React Demo (Optimized)
           </h1>
 
           <div className="space-y-4">
@@ -107,12 +107,17 @@ const DemoApp: React.FC = () => {
               </select>
               {isLoading && (
                 <div className="text-xs text-blue-600 mt-1">
-                  Loading {currentEffect} effect...
+                  🔄 Loading {currentEffect} effect...
                 </div>
               )}
               {error && (
                 <div className="text-xs text-red-600 mt-1">
-                  Error: {error}
+                  ❌ Error: {error}
+                </div>
+              )}
+              {isLoaded && !isLoading && (
+                <div className="text-xs text-green-600 mt-1">
+                  ✅ {currentEffect} loaded successfully
                 </div>
               )}
             </div>
@@ -152,29 +157,10 @@ const DemoApp: React.FC = () => {
                     <div 
                       className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
                       style={{ width: `${progress}%` }}
-                    ></div>
+                    />
                   </div>
-                  {isPreloading && <div className="text-blue-600 mt-1">Loading effects...</div>}
-                  {isComplete && <div className="text-green-600 mt-1">All effects loaded!</div>}
-                </div>
-              )}
-            </div>
-
-            {/* 성능 정보 토글 */}
-            <div>
-              <button
-                onClick={() => setShowPerformanceInfo(!showPerformanceInfo)}
-                className="text-sm text-blue-600 hover:text-blue-800"
-              >
-                {showPerformanceInfo ? 'Hide' : 'Show'} Performance Info
-              </button>
-              
-              {showPerformanceInfo && (
-                <div className="mt-2 p-3 bg-gray-50 rounded text-xs space-y-1">
-                  <div><strong>Available Effects:</strong> {performanceInfo.availableEffects}</div>
-                  <div><strong>Cached Effects:</strong> {performanceInfo.cachedEffects}</div>
-                  <div><strong>Current Effect:</strong> {currentEffect} {isLoaded ? '✓' : '⏳'}</div>
-                  <div><strong>Cache Status:</strong> {getCachedEffects().join(', ') || 'None cached'}</div>
+                  {isPreloading && <div className="text-blue-600 mt-1">🔄 Loading effects...</div>}
+                  {isComplete && <div className="text-green-600 mt-1">✅ All effects loaded!</div>}
                 </div>
               )}
             </div>
@@ -192,34 +178,24 @@ const DemoApp: React.FC = () => {
                   Show Performance Info
                 </span>
               </label>
-            </div>
-
-            {/* 프리로딩 토글 */}
-            <div>
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={enablePreload}
-                  onChange={(e) => setEnablePreload(e.target.checked)}
-                  className="form-checkbox"
-                />
-                <span className="text-sm font-medium text-gray-700">
-                  Enable Preloading
-                </span>
-              </label>
+              
+              {showPerformanceInfo && (
+                <div className="mt-2 p-3 bg-gray-50 rounded text-xs space-y-1">
+                  <div><strong>Available Effects:</strong> {performanceInfo.availableEffects}</div>
+                  <div><strong>Cached Effects:</strong> {performanceInfo.cachedEffects}</div>
+                  <div><strong>Current Effect:</strong> {currentEffect} {isLoaded ? '✅' : '⏳'}</div>
+                  <div><strong>Cached List:</strong> {getCachedEffects().join(', ') || 'None cached'}</div>
+                  <div className="text-gray-500 text-xs mt-2">
+                    💡 Switch between effects to see dynamic loading in action!
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* 정보 */}
             <div className="text-sm text-gray-600 mt-4">
               <p>Current Effect: <strong>{currentEffect}</strong></p>
-              <p>Background Mode: <strong>{backgroundMode ? 'On' : 'Off'}</strong></p>
-              {showPerformanceInfo && (
-                <div className="mt-4">
-                  <p>Available Effects: <strong>{performanceInfo.availableEffects}</strong></p>
-                  <p>Cached Effects: <strong>{performanceInfo.cachedEffects}</strong></p>
-                  <p>Load Time: <strong>{performanceInfo.loadTime.toFixed(2)} ms</strong></p>
-                </div>
-              )}
+              <p>Background Mode: <strong>{backgroundMode ? 'Full Screen' : 'Container'}</strong></p>
             </div>
           </div>
         </div>
@@ -237,10 +213,10 @@ const DemoApp: React.FC = () => {
                   background={false}
                   className="rounded-lg"
                   options={{
-                    color: 0x3f7fb3,
-                    points: 8.00,
-                    maxDistance: 23.00,
-                    spacing: 17.00,
+                    color: 0x8b5cf6,
+                    points: 6.00,
+                    maxDistance: 20.00,
+                    spacing: 15.00,
                   }}
                 />
               </div>
@@ -250,6 +226,19 @@ const DemoApp: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* 성능 팁 */}
+        <div className="mt-8">
+          <div className="bg-blue-50 rounded-lg p-4">
+            <h3 className="text-sm font-semibold text-blue-900 mb-2">🚀 Performance Tips</h3>
+            <ul className="text-xs text-blue-800 space-y-1">
+              <li>• Effects are loaded dynamically - only when needed!</li>
+              <li>• Use preloading for effects you know will be used</li>
+              <li>• Cached effects switch instantly without loading</li>
+              <li>• Total bundle size: ~22KB core + ~15-35KB per effect</li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   );
