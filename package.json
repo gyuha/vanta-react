@@ -1,6 +1,6 @@
 {
-  "name": "vanta-react-backgrounds",
-  "version": "1.0.0",
+  "name": "vanta-react",
+  "version": "0.1.0",
   "description": "React components for Vanta.js animated backgrounds with TypeScript support",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
@@ -43,6 +43,6 @@
   "author": "Your Name",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/vanta-react-backgrounds.git"
+    "url": "https://github.com/gyuha/vanta-react.git"
   }
 }

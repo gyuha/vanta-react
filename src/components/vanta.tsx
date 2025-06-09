@@ -2,6 +2,40 @@ import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { VantaProps, VantaEffect, VantaCreator } from '../types';
 
+// Vanta.js 효과들을 정적으로 import
+import BIRDS from 'vanta/dist/vanta.birds.min.js';
+import CELLS from 'vanta/dist/vanta.cells.min.js';
+import CLOUDS from 'vanta/dist/vanta.clouds.min.js';
+import CLOUDS2 from 'vanta/dist/vanta.clouds2.min.js';
+import FOG from 'vanta/dist/vanta.fog.min.js';
+import GLOBE from 'vanta/dist/vanta.globe.min.js';
+import NET from 'vanta/dist/vanta.net.min.js';
+import RINGS from 'vanta/dist/vanta.rings.min.js';
+import HALO from 'vanta/dist/vanta.halo.min.js';
+import RIPPLE from 'vanta/dist/vanta.ripple.min.js';
+import DOTS from 'vanta/dist/vanta.dots.min.js';
+import TOPOLOGY from 'vanta/dist/vanta.topology.min.js';
+import TRUNK from 'vanta/dist/vanta.trunk.min.js';
+import WAVES from 'vanta/dist/vanta.waves.min.js';
+
+// 효과 이름과 생성자 함수를 매핑하는 객체
+const VANTA_EFFECTS: Record<string, VantaCreator> = {
+  birds: BIRDS,
+  cells: CELLS,
+  clouds: CLOUDS,
+  clouds2: CLOUDS2,
+  fog: FOG,
+  globe: GLOBE,
+  net: NET,
+  rings: RINGS,
+  halo: HALO,
+  ripple: RIPPLE,
+  dots: DOTS,
+  topology: TOPOLOGY,
+  trunk: TRUNK,
+  waves: WAVES,
+};
+
 /**
  * Vanta.js 효과를 React 컴포넌트로 래핑한 컴포넌트입니다.
  * 동적으로 Vanta 효과 모듈을 로드하고, React 라이프사이클에 맞게 관리합니다.
@@ -26,37 +60,33 @@ const Vanta: React.FC<VantaProps> = ({
         vantaEffectRef.current.destroy();
       }
 
-      // 2. 새로운 효과 모듈을 동적으로 import 합니다.
-      const effectModuleName = effect.toLowerCase();
-      import(`vanta/dist/vanta.${effectModuleName}.min.js`)
-        .then(vantaModule => {
-          if (!isMounted || !vantaModule.default) return;
-
-          const VantaCreator: VantaCreator = vantaModule.default;
-          
-          // 3. Vanta 효과 인스턴스를 생성하고 ref에 저장합니다.
-          if (vantaRef.current) {
-            vantaEffectRef.current = VantaCreator({
-              el: vantaRef.current,
-              THREE: THREE,
-              // 기본 옵션과 사용자가 전달한 옵션을 병합합니다.
-              ...{
-                mouseControls: true,
-                touchControls: true,
-                gyroControls: false,
-                minHeight: 200.00,
-                minWidth: 200.00,
-                scale: 1.00,
-                scaleMobile: 1.00,
-              },
-              ...options,
-            });
-          }
-        })
-        .catch(error => {
-          // 동적 import 실패 시 에러를 콘솔에 기록합니다.
-          console.error(`Vanta.js effect "${effect}" failed to load:`, error);
-        });
+      // 2. 효과 이름에 해당하는 생성자 함수를 찾습니다.
+      const VantaCreator = VANTA_EFFECTS[effect.toLowerCase()];
+      
+      if (VantaCreator && isMounted && vantaRef.current) {
+        // 3. Vanta 효과 인스턴스를 생성하고 ref에 저장합니다.
+        try {
+          vantaEffectRef.current = VantaCreator({
+            el: vantaRef.current,
+            THREE: THREE,
+            // 기본 옵션과 사용자가 전달한 옵션을 병합합니다.
+            ...{
+              mouseControls: true,
+              touchControls: true,
+              gyroControls: false,
+              minHeight: 200.00,
+              minWidth: 200.00,
+              scale: 1.00,
+              scaleMobile: 1.00,
+            },
+            ...options,
+          });
+        } catch (error) {
+          console.error(`Vanta.js effect "${effect}" failed to initialize:`, error);
+        }
+      } else if (!VantaCreator) {
+        console.error(`Vanta.js effect "${effect}" is not available. Available effects:`, Object.keys(VANTA_EFFECTS));
+      }
     }
 
     // 4. 클린업 함수: 컴포넌트가 언마운트되거나 의존성이 변경될 때 호출됩니다.
