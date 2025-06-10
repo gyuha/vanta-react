@@ -17,8 +17,6 @@ build/
 .env.production.local
 
 # IDE
-.vscode/
-!.vscode/mcp.json
 .idea/
 *.swp
 *.swo
