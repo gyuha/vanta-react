@@ -1,9 +1,10 @@
 /**
- * 앱 시작 시점에 라이브러리를 미리 로드하는 유틸리티
+ * CDN에서 라이브러리를 미리 로드하는 유틸리티
  * React 라이프사이클 충돌을 방지하고 안정적인 라이브러리 초기화를 제공합니다.
+ * CDN 전용으로 최적화되었습니다.
  */
 
-import { loadLocalThree, loadLocalP5 } from './local-library-loader';
+import { loadCdnThree, loadCdnP5 } from './cdn-library-loader';
 
 // 전역 상태 관리
 let librariesPreloaded = false;
@@ -11,7 +12,7 @@ let preloadPromise: Promise<void> | null = null;
 let preloadError: Error | null = null;
 
 /**
- * three.js와 p5.js를 앱 시작 시점에 미리 로드합니다.
+ * three.js와 p5.js를 CDN에서 앱 시작 시점에 미리 로드합니다.
  * 중복 호출을 방지하고 Promise 기반 동기화를 제공합니다.
  */
 export const preloadLibraries = async (): Promise<void> => {
@@ -33,33 +34,33 @@ export const preloadLibraries = async (): Promise<void> => {
   // 새로운 로딩 프로세스 시작
   preloadPromise = (async () => {
     try {
-      console.log('[Preload] Starting library preload...');
+      console.log('[Preload] Starting library preload from CDN...');
       
-      // three.js와 p5.js를 병렬로 로드
+      // three.js와 p5.js를 병렬로 CDN에서 로드
       const [THREE, p5] = await Promise.all([
-        loadLocalThree(),
-        loadLocalP5()
+        loadCdnThree(),
+        loadCdnP5()
       ]);
 
       // 전역 객체에 라이브러리 할당 (안전성을 위해 명시적 확인)
       if (THREE && typeof window !== 'undefined') {
         (window as any).THREE = THREE;
       } else {
-        throw new Error('Failed to load THREE.js properly');
+        throw new Error('Failed to load THREE.js properly from CDN');
       }
 
       if (p5 && typeof window !== 'undefined') {
         (window as any).p5 = p5;
       } else {
-        throw new Error('Failed to load p5.js properly');
+        throw new Error('Failed to load p5.js properly from CDN');
       }
 
       librariesPreloaded = true;
-      console.log('[Preload] Libraries preloaded successfully');
+      console.log('[Preload] Libraries preloaded successfully from CDN');
       
     } catch (error) {
-      preloadError = error instanceof Error ? error : new Error('Unknown preload error');
-      console.error('[Preload] Failed to preload libraries:', preloadError);
+      preloadError = error instanceof Error ? error : new Error('Unknown CDN preload error');
+      console.error('[Preload] Failed to preload libraries from CDN:', preloadError);
       throw preloadError;
     }
   })();
@@ -86,14 +87,14 @@ export const areLibrariesReady = (): boolean => {
  */
 export const getPreloadedThree = () => {
   if (typeof window === 'undefined' || !(window as any).THREE) {
-    throw new Error('THREE.js is not preloaded. Call preloadLibraries() first.');
+    throw new Error('THREE.js is not preloaded from CDN. Call preloadLibraries() first.');
   }
   return (window as any).THREE;
 };
 
 export const getPreloadedP5 = () => {
   if (typeof window === 'undefined' || !(window as any).p5) {
-    throw new Error('p5.js is not preloaded. Call preloadLibraries() first.');
+    throw new Error('p5.js is not preloaded from CDN. Call preloadLibraries() first.');
   }
   return (window as any).p5;
 };
@@ -107,7 +108,8 @@ export const getPreloadStatus = () => ({
   hasError: !!preloadError,
   error: preloadError?.message || null,
   threeAvailable: !!(typeof window !== 'undefined' && (window as any).THREE),
-  p5Available: !!(typeof window !== 'undefined' && (window as any).p5)
+  p5Available: !!(typeof window !== 'undefined' && (window as any).p5),
+  loadSource: 'CDN' as const
 });
 
 /**
@@ -119,8 +121,8 @@ export const resetPreloadState = () => {
   preloadError = null;
   
   if (typeof window !== 'undefined') {
-    delete (window as any).THREE;
-    delete (window as any).p5;
+    (window as any).THREE = undefined;
+    (window as any).p5 = undefined;
   }
   
   console.log('[Preload] Preload state reset');

@@ -51,6 +51,8 @@ export interface VantaProps {
   options?: Record<string, any>;
   /** 컨테이너 div에 추가할 사용자 정의 CSS 클래스 */
   className?: string;
+  /** 컨테이너 div에 적용할 인라인 스타일 */
+  style?: React.CSSProperties;
   /** true로 설정하면 화면 전체를 덮는 배경으로 동작합니다 (fixed positioning, full screen) */
   background?: boolean;
 }

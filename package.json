@@ -1,7 +1,7 @@
 {
   "name": "vanta-react",
-  "version": "0.2.0",
-  "description": "React components for Vanta.js animated backgrounds with TypeScript support",
+  "version": "0.3.0",
+  "description": "React components for Vanta.js animated backgrounds with TypeScript support - CDN optimized",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
   "types": "dist/index.d.ts",
@@ -18,17 +18,19 @@
   ],
   "scripts": {
     "build": "vite build",
+    "build:cdn": "vite build --mode cdn",
     "dev": "vite",
+    "dev:cdn": "vite --config vite.cdn.config.ts",
     "preview": "vite preview",
-    "prepublishOnly": "pnpm build"
+    "preview:cdn": "vite preview --config vite.cdn.config.ts",
+    "prepublishOnly": "pnpm build",
+    "demo:cdn": "vite --config vite.cdn.config.ts --open /cdn-demo.html"
   },
   "peerDependencies": {
     "react": "^16.0.0",
     "react-dom": "^16.0.0"
   },
-  "dependencies": {
-    "vanta": "^0.5.24"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/react": "^16.14.34",
     "@types/react-dom": "^16.9.16",

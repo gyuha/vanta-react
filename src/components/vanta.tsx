@@ -11,6 +11,7 @@ const Vanta: React.FC<VantaProps> = ({
   effect,
   options,
   className = '',
+  style,
   background = false,
 }) => {
   // Vanta 효과 인스턴스를 저장하는 ref
@@ -207,6 +208,8 @@ const Vanta: React.FC<VantaProps> = ({
         height: '100vh',
         overflow: 'hidden',
       }),
+      // 사용자 정의 스타일 추가
+      ...style,
     }
   });
 };

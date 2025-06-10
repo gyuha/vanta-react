@@ -16,19 +16,19 @@ const AppWithPreload: React.FC = () => {
   useEffect(() => {
     const initialize = async () => {
       try {
-        setLoadingMessage('Loading required libraries...');
-        console.log('[Main] Starting library preload process');
+        setLoadingMessage('Loading required libraries from CDN...');
+        console.log('[Main] Starting CDN library preload process');
         
         await preloadLibraries();
         
         // 추가 검증
         const status = getPreloadStatus();
         if (!status.isPreloaded || !status.threeAvailable || !status.p5Available) {
-          throw new Error('Libraries failed to load properly');
+          throw new Error('CDN libraries failed to load properly');
         }
 
-        setLoadingMessage('Libraries loaded successfully!');
-        console.log('[Main] Libraries preloaded successfully');
+        setLoadingMessage('CDN libraries loaded successfully!');
+        console.log('[Main] CDN libraries preloaded successfully');
         
         // 약간의 지연을 두어 로딩 메시지를 보여주고 앱 시작
         setTimeout(() => {

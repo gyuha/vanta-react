@@ -15,7 +15,7 @@ export {
   clearEffectCache,
 } from './utils/vanta-loader';
 
-// 라이브러리 pre-loading 함수 export
+// 라이브러리 pre-loading 함수 export (CDN 전용)
 export {
   preloadLibraries,
   areLibrariesReady,
@@ -24,6 +24,29 @@ export {
   getPreloadStatus,
   resetPreloadState,
 } from './utils/preload-libraries';
+
+// CDN 라이브러리 로더 export
+export {
+  loadCdnThree,
+  loadCdnP5,
+  loadCdnVantaEffect,
+  loadCdnLibraries,
+  getCdnLibraryStatus,
+  VANTA_EFFECTS,
+  preloadAllVantaEffects,
+  type VantaEffectName,
+} from './utils/cdn-library-loader';
+
+// CDN Vanta 로더 export
+export {
+  loadVantaEffectFromCdn,
+  loadMultipleVantaEffects,
+  preloadPopularVantaEffects,
+  getVantaLoadStatus,
+  clearVantaCache,
+  isVantaEffectAvailable,
+  getVantaEffectCdnUrl,
+} from './utils/cdn-vanta-loader';
 
 // 성능 모니터링 함수 export (개발 모드에서 사용)
 export {

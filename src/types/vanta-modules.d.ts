@@ -1,70 +1,60 @@
-// Vanta.js 모듈들에 대한 타입 선언
-declare module 'vanta/dist/vanta.birds.min.js' {
-  const BIRDS: any;
-  export default BIRDS;
+/**
+ * CDN 기반 Vanta.js 타입 선언
+ * 전역 VANTA 객체와 window 객체 확장을 위한 타입 정의
+ */
+
+declare global {
+  interface Window {
+    THREE?: any;
+    p5?: any;
+    VANTA?: {
+      BIRDS?: any;
+      CELLS?: any;
+      CLOUDS?: any;
+      CLOUDS2?: any;
+      DOTS?: any;
+      FOG?: any;
+      GLOBE?: any;
+      HALO?: any;
+      NET?: any;
+      RINGS?: any;
+      RIPPLE?: any;
+      TOPOLOGY?: any;
+      TRUNK?: any;
+      WAVES?: any;
+      [key: string]: any;
+    };
+  }
 }
 
-declare module 'vanta/dist/vanta.cells.min.js' {
-  const CELLS: any;
-  export default CELLS;
+/**
+ * CDN에서 로드되는 Vanta 이펙트 타입
+ * 각 이펙트는 함수로 제공되며 옵션 객체를 받아 이펙트 인스턴스를 반환합니다.
+ */
+export interface VantaEffectConstructor {
+  (options: {
+    el: HTMLElement;
+    THREE?: any;
+    p5?: any;
+    [key: string]: any;
+  }): {
+    destroy(): void;
+    resize?(): void;
+    [key: string]: any;
+  };
 }
 
-declare module 'vanta/dist/vanta.clouds.min.js' {
-  const CLOUDS: any;
-  export default CLOUDS;
+/**
+ * CDN 로드 상태 타입
+ */
+export interface CdnLoadStatus {
+  threeLoaded: boolean;
+  p5Loaded: boolean;
+  vantaLoaded: boolean;
+  threeAvailable: boolean;
+  p5Available: boolean;
+  vantaAvailable: boolean;
 }
 
-declare module 'vanta/dist/vanta.clouds2.min.js' {
-  const CLOUDS2: any;
-  export default CLOUDS2;
-}
-
-declare module 'vanta/dist/vanta.fog.min.js' {
-  const FOG: any;
-  export default FOG;
-}
-
-declare module 'vanta/dist/vanta.globe.min.js' {
-  const GLOBE: any;
-  export default GLOBE;
-}
-
-declare module 'vanta/dist/vanta.net.min.js' {
-  const NET: any;
-  export default NET;
-}
-
-declare module 'vanta/dist/vanta.rings.min.js' {
-  const RINGS: any;
-  export default RINGS;
-}
-
-declare module 'vanta/dist/vanta.halo.min.js' {
-  const HALO: any;
-  export default HALO;
-}
-
-declare module 'vanta/dist/vanta.ripple.min.js' {
-  const RIPPLE: any;
-  export default RIPPLE;
-}
-
-declare module 'vanta/dist/vanta.dots.min.js' {
-  const DOTS: any;
-  export default DOTS;
-}
-
-declare module 'vanta/dist/vanta.topology.min.js' {
-  const TOPOLOGY: any;
-  export default TOPOLOGY;
-}
-
-declare module 'vanta/dist/vanta.trunk.min.js' {
-  const TRUNK: any;
-  export default TRUNK;
-}
-
-declare module 'vanta/dist/vanta.waves.min.js' {
-  const WAVES: any;
-  export default WAVES;
-}
+// 모듈 내보내기 (TypeScript 모듈로 인식되도록)
+export {};
