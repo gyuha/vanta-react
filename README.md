@@ -1,4 +1,4 @@
-# Vanta React Backgrounds
+# Vanta React
 
 > [한국어 문서](./README-ko.md) | English
 
@@ -11,19 +11,21 @@ A React component library for Vanta.js animated backgrounds with full TypeScript
 - ⚛️ **React 16 Compatible** - Works with legacy projects
 - 🎯 **Flexible Usage** - Full screen background or container mode
 - 🧹 **Automatic Memory Management** - Auto cleanup on component unmount
-- 📦 **Tree Shaking Support** - Only bundle the effects you need
+- 📦 **Bundled Dependencies** - Three.js and p5.js included for seamless integration
+- 🚀 **Performance Monitoring** - Built-in performance monitoring for development
+- 🔄 **Dynamic Loading** - Effects are loaded on demand for optimal bundle size
 
 ## Installation
 
 ```bash
 # npm
-npm install vanta-react-backgrounds three react
+npm install vanta-react
 
 # yarn
-yarn add vanta-react-backgrounds three react
+yarn add vanta-react
 
 # pnpm
-pnpm add vanta-react-backgrounds three react
+pnpm add vanta-react
 ```
 
 ## Basic Usage
@@ -32,7 +34,7 @@ pnpm add vanta-react-backgrounds three react
 
 ```tsx
 import React from 'react';
-import { Vanta } from 'vanta-react-backgrounds';
+import { Vanta } from 'vanta-react';
 
 function App() {
   return (
@@ -61,7 +63,7 @@ function App() {
 
 ```tsx
 import React from 'react';
-import { Vanta } from 'vanta-react-backgrounds';
+import { Vanta } from 'vanta-react';
 
 function ContainerExample() {
   return (
@@ -85,7 +87,7 @@ function ContainerExample() {
 
 ```tsx
 import React, { useState } from 'react';
-import { Vanta, VantaEffectName } from 'vanta-react-backgrounds';
+import { Vanta, VantaEffectName } from 'vanta-react';
 
 function DynamicExample() {
   const [effect, setEffect] = useState<VantaEffectName>('net');
@@ -131,7 +133,7 @@ function DynamicExample() {
 
 ### p5.js Effects
 
-Some effects (`dots`, `topology`, `trunk`) require p5.js in addition to Three.js. This library automatically detects which effects need p5.js and includes it when necessary.
+Some effects (`dots`, `topology`, `trunk`) require p5.js in addition to Three.js. This library automatically includes both Three.js and p5.js when needed.
 
 **No additional setup required** - p5.js is automatically provided to effects that need it.
 
@@ -140,7 +142,7 @@ Some effects (`dots`, `topology`, `trunk`) require p5.js in addition to Three.js
 This library provides full TypeScript support:
 
 ```tsx
-import { Vanta, VantaEffectName, VantaProps } from 'vanta-react-backgrounds';
+import { Vanta, VantaEffectName, VantaProps } from 'vanta-react';
 
 // Type-safe effect selection
 const effect: VantaEffectName = 'net';
@@ -160,7 +162,8 @@ const vantaProps: VantaProps = {
 ## Compatibility
 
 - **React**: 16.0.0+
-- **Three.js**: 0.140.2+ (recommended)
+- **Three.js**: 0.134+ (bundled)
+- **p5.js**: 1.1.9+ (bundled when needed)
 - **TypeScript**: 4.0+
 - **Node.js**: 14+
 
@@ -168,8 +171,8 @@ const vantaProps: VantaProps = {
 
 ```bash
 # Clone repository
-git clone https://github.com/your-username/vanta-react-backgrounds.git
-cd vanta-react-backgrounds
+git clone https://github.com/gyuha/vanta-react.git
+cd vanta-react
 
 # Install dependencies
 pnpm install
@@ -191,9 +194,10 @@ Bug reports, feature requests, and Pull Requests are welcome!
 
 ## Notes
 
-- Vanta.js depends on Three.js, so Three.js must be installed alongside this library.
-- We recommend using Three.js version 0.140.2 for compatibility.
+- Three.js and p5.js are automatically bundled with this library for seamless integration.
+- We use Three.js version 0.134 for optimal compatibility with Vanta.js effects.
 - Memory cleanup is automatically performed when the component is unmounted.
+- Performance monitoring is available in development mode for optimization insights.
 
 ## Performance Optimization
 
@@ -219,10 +223,10 @@ function DynamicLoadingExample() {
 ```
 
 ### Bundle Size Analysis
-- **Main bundle**: ~22 kB (core library)
-- **Individual effects**: 10-36 kB each (loaded on demand)
-- **Total if all effects loaded**: ~250 kB
-- **Typical usage**: 22-58 kB (1-2 effects)
+- **Main bundle**: ~45 kB (core library + Three.js + p5.js)
+- **Individual effects**: 5-15 kB each (loaded on demand)
+- **Total if all effects loaded**: ~150 kB
+- **Typical usage**: 45-75 kB (1-2 effects)
 
 ### Performance Tips
 
