@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import type { VantaProps, VantaEffect } from '../types';
 import { loadVantaEffect } from '../utils/vanta-loader';
-import { loadRequiredLibraries } from '../utils/local-library-loader';
+import { areLibrariesReady, getPreloadedThree, getPreloadedP5 } from '../utils/preload-libraries';
 
 /**
  * Vanta.js 효과를 React 컴포넌트로 래핑한 컴포넌트입니다.
@@ -65,11 +65,28 @@ const Vanta: React.FC<VantaProps> = ({
       setLoadError(null);
 
       try {
-        // 3. 필요한 라이브러리들을 로컬에서 로드
-        const libraries = await loadRequiredLibraries(needsP5);
-        const { THREE, p5 } = libraries;
+        // 3. 라이브러리 준비 상태 확인
+        if (!areLibrariesReady()) {
+          setLoadError('Libraries not ready. Please wait for app initialization.');
+          console.warn('[Vanta] Libraries are not preloaded. Ensure preloadLibraries() is called before using Vanta components.');
+          return;
+        }
 
-        // 4. 효과 모듈을 동적으로 로드합니다.
+        // 4. 전역에서 직접 라이브러리 참조 (안전한 접근 함수 사용)
+        let THREE: any;
+        let p5: any;
+
+        try {
+          THREE = getPreloadedThree();
+          if (needsP5) {
+            p5 = getPreloadedP5();
+          }
+        } catch (libraryError) {
+          setLoadError(`Library access error: ${libraryError instanceof Error ? libraryError.message : 'Unknown error'}`);
+          return;
+        }
+
+        // 5. 효과 모듈을 동적으로 로드합니다.
         const VantaCreator = await loadVantaEffect(effect);
         
         if (!VantaCreator) {
@@ -77,7 +94,7 @@ const Vanta: React.FC<VantaProps> = ({
           return;
         }
 
-        // 5. 컴포넌트가 여전히 마운트되어 있고 DOM 요소가 존재하는지 확인
+        // 6. 컴포넌트가 여전히 마운트되어 있고 DOM 요소가 존재하는지 확인
         if (isMounted && vantaRef.current) {
           // 배경 모드일 때 컨테이너 크기를 명시적으로 설정
           if (background && vantaRef.current) {
@@ -94,7 +111,7 @@ const Vanta: React.FC<VantaProps> = ({
             element.offsetHeight;
           }
 
-          // 6. Vanta 효과 인스턴스를 생성하고 ref에 저장합니다.
+          // 7. Vanta 효과 인스턴스를 생성하고 ref에 저장합니다.
           const effectOptions = {
             el: vantaRef.current,
             THREE: THREE,
@@ -150,7 +167,7 @@ const Vanta: React.FC<VantaProps> = ({
 
     initializeVantaEffect();
 
-    // 6. 클린업 함수: 컴포넌트가 언마운트되거나 의존성이 변경될 때 호출됩니다.
+    // 8. 클린업 함수: 컴포넌트가 언마운트되거나 의존성이 변경될 때 호출됩니다.
     return () => {
       isMounted = false;
       if (vantaEffectRef.current) {
@@ -163,7 +180,7 @@ const Vanta: React.FC<VantaProps> = ({
         vantaEffectRef.current = null; // 참조를 명시적으로 null로 만들어 가비지 컬렉션을 돕습니다.
       }
     };
-  }, [effect, memoizedOptions, background, createResizeHandler, needsP5]); // p5 필요 여부도 의존성에 추가
+  }, [effect, memoizedOptions, background, createResizeHandler, needsP5]); // needsP5는 효과별 라이브러리 요구사항 확인용
 
   // background prop에 따라 다른 스타일을 적용합니다.
   const baseClassName = background
@@ -175,25 +192,23 @@ const Vanta: React.FC<VantaProps> = ({
     console.warn(`Vanta effect load error: ${loadError}`);
   }
 
-  return (
-    <div
-      ref={vantaRef}
-      className={`${baseClassName} ${className}`}
-      style={{
-        // 로딩 중일 때는 투명도를 낮춰서 시각적 피드백 제공 (선택사항)
-        opacity: isLoading ? 0.7 : 1,
-        transition: 'opacity 0.3s ease-in-out',
-        // 배경 모드일 때 추가 스타일
-        ...(background && {
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          overflow: 'hidden',
-        }),
-      }}
-    />
-  );
+  return React.createElement('div', {
+    ref: vantaRef,
+    className: `${baseClassName} ${className}`,
+    style: {
+      // 로딩 중일 때는 투명도를 낮춰서 시각적 피드백 제공 (선택사항)
+      opacity: isLoading ? 0.7 : 1,
+      transition: 'opacity 0.3s ease-in-out',
+      // 배경 모드일 때 추가 스타일
+      ...(background && {
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        overflow: 'hidden',
+      }),
+    }
+  });
 };
 
 export default Vanta;

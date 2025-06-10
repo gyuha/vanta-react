@@ -1,0 +1,127 @@
+/**
+ * 앱 시작 시점에 라이브러리를 미리 로드하는 유틸리티
+ * React 라이프사이클 충돌을 방지하고 안정적인 라이브러리 초기화를 제공합니다.
+ */
+
+import { loadLocalThree, loadLocalP5 } from './local-library-loader';
+
+// 전역 상태 관리
+let librariesPreloaded = false;
+let preloadPromise: Promise<void> | null = null;
+let preloadError: Error | null = null;
+
+/**
+ * three.js와 p5.js를 앱 시작 시점에 미리 로드합니다.
+ * 중복 호출을 방지하고 Promise 기반 동기화를 제공합니다.
+ */
+export const preloadLibraries = async (): Promise<void> => {
+  // 이미 로드가 완료되었다면 즉시 반환
+  if (librariesPreloaded) {
+    return Promise.resolve();
+  }
+
+  // 이미 로딩 중이라면 기존 Promise를 반환
+  if (preloadPromise) {
+    return preloadPromise;
+  }
+
+  // 이전에 발생한 에러가 있다면 다시 시도
+  if (preloadError) {
+    preloadError = null;
+  }
+
+  // 새로운 로딩 프로세스 시작
+  preloadPromise = (async () => {
+    try {
+      console.log('[Preload] Starting library preload...');
+      
+      // three.js와 p5.js를 병렬로 로드
+      const [THREE, p5] = await Promise.all([
+        loadLocalThree(),
+        loadLocalP5()
+      ]);
+
+      // 전역 객체에 라이브러리 할당 (안전성을 위해 명시적 확인)
+      if (THREE && typeof window !== 'undefined') {
+        (window as any).THREE = THREE;
+      } else {
+        throw new Error('Failed to load THREE.js properly');
+      }
+
+      if (p5 && typeof window !== 'undefined') {
+        (window as any).p5 = p5;
+      } else {
+        throw new Error('Failed to load p5.js properly');
+      }
+
+      librariesPreloaded = true;
+      console.log('[Preload] Libraries preloaded successfully');
+      
+    } catch (error) {
+      preloadError = error instanceof Error ? error : new Error('Unknown preload error');
+      console.error('[Preload] Failed to preload libraries:', preloadError);
+      throw preloadError;
+    }
+  })();
+
+  return preloadPromise;
+};
+
+/**
+ * 라이브러리가 준비되었는지 확인하는 함수
+ * @returns 모든 라이브러리가 로드되고 전역에서 사용 가능한지 여부
+ */
+export const areLibrariesReady = (): boolean => {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  return librariesPreloaded && 
+         !!(window as any).THREE && 
+         !!(window as any).p5;
+};
+
+/**
+ * 전역 객체에서 라이브러리를 안전하게 가져오는 함수들
+ */
+export const getPreloadedThree = () => {
+  if (typeof window === 'undefined' || !(window as any).THREE) {
+    throw new Error('THREE.js is not preloaded. Call preloadLibraries() first.');
+  }
+  return (window as any).THREE;
+};
+
+export const getPreloadedP5 = () => {
+  if (typeof window === 'undefined' || !(window as any).p5) {
+    throw new Error('p5.js is not preloaded. Call preloadLibraries() first.');
+  }
+  return (window as any).p5;
+};
+
+/**
+ * 라이브러리 로드 상태 정보를 반환하는 함수
+ */
+export const getPreloadStatus = () => ({
+  isPreloaded: librariesPreloaded,
+  isLoading: !!preloadPromise && !librariesPreloaded,
+  hasError: !!preloadError,
+  error: preloadError?.message || null,
+  threeAvailable: !!(typeof window !== 'undefined' && (window as any).THREE),
+  p5Available: !!(typeof window !== 'undefined' && (window as any).p5)
+});
+
+/**
+ * 프리로드 상태를 초기화하는 함수 (테스트나 재시작 용도)
+ */
+export const resetPreloadState = () => {
+  librariesPreloaded = false;
+  preloadPromise = null;
+  preloadError = null;
+  
+  if (typeof window !== 'undefined') {
+    delete (window as any).THREE;
+    delete (window as any).p5;
+  }
+  
+  console.log('[Preload] Preload state reset');
+};

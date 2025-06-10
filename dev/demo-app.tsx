@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { 
   Vanta, 
+  ErrorBoundary,
   type VantaEffectName, 
   useVantaEffect, 
   getAvailableEffects,
   getCachedEffects,
   isPerformanceMonitoringEnabled,
-  getMemoryUsage 
+  getMemoryUsage,
+  areLibrariesReady 
 } from '../src';
 
 const effectOptions = [
@@ -180,6 +182,36 @@ const DemoApp: React.FC = () => {
   // 효과 로딩 상태 추적
   const { isLoading, error, isLoaded } = useVantaEffect(currentEffect);
 
+  // 라이브러리 준비 상태 확인
+  const [librariesReady, setLibrariesReady] = useState(false);
+
+  // 라이브러리 준비 상태를 실시간으로 체크
+  useEffect(() => {
+    const checkLibraries = () => {
+      const ready = areLibrariesReady();
+      setLibrariesReady(ready);
+      
+      if (!ready) {
+        console.warn('[DemoApp] Libraries not ready yet, will retry...');
+      }
+    };
+
+    // 초기 체크
+    checkLibraries();
+
+    // 라이브러리가 준비되지 않은 경우 주기적으로 체크
+    let interval: number | null = null;
+    if (!librariesReady) {
+      interval = window.setInterval(checkLibraries, 1000);
+    }
+
+    return () => {
+      if (interval) {
+        window.clearInterval(interval);
+      }
+    };
+  }, [librariesReady]);
+
   // getEffectOptions 함수를 useCallback으로 메모이제이션
   const memoizedGetEffectOptions = useCallback((effect: VantaEffectName) => {
     return getEffectOptions(effect);
@@ -217,12 +249,59 @@ const DemoApp: React.FC = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Vanta 컴포넌트 */}
-      <Vanta
-        effect={currentEffect}
-        background={backgroundMode}
-        options={currentEffectOptions}
-      />
+      {/* Vanta 컴포넌트 - ErrorBoundary로 감싸고 라이브러리 준비 상태 확인 */}
+      <ErrorBoundary
+        onError={(error, errorInfo) => {
+          console.error('[DemoApp] Vanta Error Boundary caught error:', error);
+          console.error('[DemoApp] Error Info:', errorInfo);
+        }}
+      >
+        {librariesReady ? (
+          <Vanta
+            effect={currentEffect}
+            background={backgroundMode}
+            options={currentEffectOptions}
+          />
+        ) : (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: '#f8f9fa',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#495057',
+            fontFamily: 'Arial, sans-serif',
+            zIndex: -1
+          }}>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              border: '4px solid #e9ecef',
+              borderTop: '4px solid #007bff',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+              marginBottom: '16px'
+            }} />
+            <p style={{ fontSize: '16px', marginBottom: '8px' }}>
+              Waiting for libraries to load...
+            </p>
+            <p style={{ fontSize: '14px', color: '#6c757d' }}>
+              Three.js and p5.js are being initialized
+            </p>
+            <style>{`
+              @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+            `}</style>
+          </div>
+        )}
+      </ErrorBoundary>
 
       {/* 컨트롤 패널 */}
       <div className="relative z-10 p-8">
@@ -293,6 +372,7 @@ const DemoApp: React.FC = () => {
               
               {showPerformanceInfo && (
                 <div className="mt-2 p-3 bg-gray-50 rounded text-xs space-y-1">
+                  <div><strong>Libraries Ready:</strong> {librariesReady ? '✅ Yes' : '❌ No'}</div>
                   <div><strong>Available Effects:</strong> {performanceInfo.availableEffects}</div>
                   <div><strong>Cached Effects:</strong> {performanceInfo.cachedEffects}</div>
                   <div><strong>Current Effect:</strong> {currentEffect} {isLoaded ? '✓' : '⏳'}</div>
