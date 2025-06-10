@@ -1,5 +1,4 @@
-import type React from 'react';
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { 
   Vanta, 
   type VantaEffectName, 
