@@ -8,6 +8,13 @@ let threeScript: HTMLScriptElement | null = null;
 let p5Script: HTMLScriptElement | null = null;
 
 /**
+ * src/lib 폴더의 파일 URL을 생성하는 헬퍼 함수
+ */
+const getLibraryUrl = (filename: string): string => {
+  return new URL(`../lib/${filename}`, import.meta.url).href;
+};
+
+/**
  * Three.js를 로컬 파일에서 로드
  */
 export const loadLocalThree = (): Promise<any> => {
@@ -29,7 +36,7 @@ export const loadLocalThree = (): Promise<any> => {
 
     // 스크립트 태그 생성 및 로드
     threeScript = document.createElement('script');
-    threeScript.src = '/lib/three.min.js';
+    threeScript.src = getLibraryUrl('three.min.js');
     threeScript.onload = () => {
       threeLoaded = true;
       if ((window as any).THREE) {
@@ -68,7 +75,7 @@ export const loadLocalP5 = (): Promise<any> => {
 
     // 스크립트 태그 생성 및 로드
     p5Script = document.createElement('script');
-    p5Script.src = '/lib/p5.min.js';
+    p5Script.src = getLibraryUrl('p5.min.js');
     p5Script.onload = () => {
       p5Loaded = true;
       if ((window as any).p5) {
@@ -88,10 +95,7 @@ export const loadLocalP5 = (): Promise<any> => {
 /**
  * 필요한 라이브러리들을 병렬로 로드
  */
-export const loadRequiredLibraries = async (needsP5: boolean = false): Promise<{
-  THREE: any;
-  p5?: any;
-}> => {
+export const loadRequiredLibraries = async (needsP5 = false) => {
   try {
     const THREE = await loadLocalThree();
     
