@@ -28,7 +28,12 @@ export interface PerformanceMetrics {
  * 성능 모니터링이 활성화되어 있는지 확인하는 함수
  */
 export const isPerformanceMonitoringEnabled = (): boolean => {
-  return process.env.NODE_ENV === 'development' || process.env.VANTA_PERFORMANCE_MONITORING === 'true';
+  try {
+    return (typeof window !== 'undefined' && window.location.hostname === 'localhost') ||
+           ((globalThis as any).process?.env?.VANTA_PERFORMANCE_MONITORING === 'true');
+  } catch {
+    return false;
+  }
 };
 
 /**
