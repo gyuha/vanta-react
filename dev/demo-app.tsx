@@ -1,5 +1,5 @@
 import type React from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { 
   Vanta, 
   type VantaEffectName, 
@@ -39,17 +39,18 @@ const getEffectOptions = (effect: VantaEffectName) => {
     case 'birds':
       return {
         ...baseOptions,
-        backgroundColor: 0x07192F,
+        backgroundColor: 0x000000, // 더 어두운 배경으로 새들이 잘 보이도록
+        backgroundAlpha: 1,
         color1: 0xff0000,
         color2: 0x00d1ff,
         colorMode: 'varianceGradient',
-        birdSize: 1,
-        wingSpan: 30,
-        speedLimit: 5,
-        separation: 20,
-        alignment: 20,
-        cohesion: 20,
-        quantity: 5,
+        birdSize: 1.5, // 새 크기를 약간 키움
+        wingSpan: 25,   // wingSpan을 약간 줄임
+        speedLimit: 4,  // 속도를 약간 줄임
+        separation: 15, // 분리 거리를 줄임
+        alignment: 15,  // 정렬을 줄임
+        cohesion: 15,   // 응집력을 줄임
+        quantity: 3,    // 새의 수를 늘림
       };
     case 'cells':
       return {
@@ -180,6 +181,16 @@ const DemoApp: React.FC = () => {
   // 효과 로딩 상태 추적
   const { isLoading, error, isLoaded } = useVantaEffect(currentEffect);
 
+  // getEffectOptions 함수를 useCallback으로 메모이제이션
+  const memoizedGetEffectOptions = useCallback((effect: VantaEffectName) => {
+    return getEffectOptions(effect);
+  }, []);
+
+  // 현재 효과의 옵션을 useMemo로 메모이제이션
+  const currentEffectOptions = useMemo(() => {
+    return memoizedGetEffectOptions(currentEffect);
+  }, [currentEffect, memoizedGetEffectOptions]);
+
   // 성능 정보 업데이트
   const [performanceInfo, setPerformanceInfo] = useState({
     availableEffects: 0,
@@ -211,7 +222,7 @@ const DemoApp: React.FC = () => {
       <Vanta
         effect={currentEffect}
         background={backgroundMode}
-        options={getEffectOptions(currentEffect)}
+        options={currentEffectOptions}
       />
 
       {/* 컨트롤 패널 */}
@@ -339,7 +350,7 @@ const DemoApp: React.FC = () => {
                   effect={currentEffect}
                   background={false}
                   className="rounded-lg"
-                  options={getEffectOptions(currentEffect)}
+                  options={currentEffectOptions}
                 />
               </div>
               <p className="text-sm text-gray-600 mt-2">
