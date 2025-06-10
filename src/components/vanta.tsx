@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import type React from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import type { VantaProps, VantaEffect } from '../types';
 import { loadVantaEffect } from '../utils/vanta-loader';
 import { loadRequiredLibraries } from '../utils/local-library-loader';
