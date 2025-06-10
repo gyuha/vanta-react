@@ -122,10 +122,16 @@ function DynamicExample() {
 - `rings` - 원형 애니메이션
 - `halo` - 후광 효과
 - `ripple` - 물결 효과
-- `dots` - 점 애니메이션
-- `topology` - 지형 애니메이션
-- `trunk` - 나무 줄기 애니메이션
+- `dots` - 점 애니메이션 *(p5.js 필요)*
+- `topology` - 지형 애니메이션 *(p5.js 필요)*
+- `trunk` - 나무 줄기 애니메이션 *(p5.js 필요)*
 - `waves` - 파도 애니메이션
+
+### p5.js 효과들
+
+일부 효과(`dots`, `topology`, `trunk`)는 Three.js 외에 p5.js도 필요합니다. 이 라이브러리는 어떤 효과가 p5.js를 필요로 하는지 자동으로 감지하고 필요할 때 포함시킵니다.
+
+**추가 설정 불필요** - p5.js가 필요한 효과에 자동으로 제공됩니다.
 
 ## TypeScript 지원
 

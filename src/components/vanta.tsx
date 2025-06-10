@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import type React from 'react';
-import * as THREE from 'three';
 import type { VantaProps, VantaEffect } from '../types';
 import { loadVantaEffect } from '../utils/vanta-loader';
+import { loadRequiredLibraries } from '../utils/local-library-loader';
 
 /**
  * Vanta.js 효과를 React 컴포넌트로 래핑한 컴포넌트입니다.
@@ -24,6 +24,11 @@ const Vanta: React.FC<VantaProps> = ({
 
   // options 객체의 불필요한 재생성을 방지하기 위한 메모이제이션
   const memoizedOptions = useMemo(() => options, [options]);
+
+  // p5가 필요한 효과들을 식별하는 함수
+  const needsP5 = useMemo(() => {
+    return ['trunk', 'topology', 'dots'].includes(effect);
+  }, [effect]);
 
   // 리사이즈 핸들러를 useCallback으로 최적화
   const createResizeHandler = useCallback(() => {
@@ -61,7 +66,11 @@ const Vanta: React.FC<VantaProps> = ({
       setLoadError(null);
 
       try {
-        // 3. 효과 모듈을 동적으로 로드합니다.
+        // 3. 필요한 라이브러리들을 로컬에서 로드
+        const libraries = await loadRequiredLibraries(needsP5);
+        const { THREE, p5 } = libraries;
+
+        // 4. 효과 모듈을 동적으로 로드합니다.
         const VantaCreator = await loadVantaEffect(effect);
         
         if (!VantaCreator) {
@@ -69,7 +78,7 @@ const Vanta: React.FC<VantaProps> = ({
           return;
         }
 
-        // 4. 컴포넌트가 여전히 마운트되어 있고 DOM 요소가 존재하는지 확인
+        // 5. 컴포넌트가 여전히 마운트되어 있고 DOM 요소가 존재하는지 확인
         if (isMounted && vantaRef.current) {
           // 배경 모드일 때 컨테이너 크기를 명시적으로 설정
           if (background && vantaRef.current) {
@@ -86,10 +95,11 @@ const Vanta: React.FC<VantaProps> = ({
             element.offsetHeight;
           }
 
-          // 5. Vanta 효과 인스턴스를 생성하고 ref에 저장합니다.
-          vantaEffectRef.current = VantaCreator({
+          // 6. Vanta 효과 인스턴스를 생성하고 ref에 저장합니다.
+          const effectOptions = {
             el: vantaRef.current,
             THREE: THREE,
+            ...(needsP5 && { p5: p5 }), // p5가 필요한 효과에만 p5 전달
             // 기본 옵션과 사용자가 전달한 옵션을 병합합니다.
             ...{
               mouseControls: true,
@@ -101,7 +111,9 @@ const Vanta: React.FC<VantaProps> = ({
               scaleMobile: 1.00,
             },
             ...memoizedOptions,
-          });
+          };
+
+          vantaEffectRef.current = VantaCreator(effectOptions);
 
           // 배경 모드일 때 추가 설정 및 리사이즈 이벤트 처리
           if (background && vantaEffectRef.current) {
@@ -152,7 +164,7 @@ const Vanta: React.FC<VantaProps> = ({
         vantaEffectRef.current = null; // 참조를 명시적으로 null로 만들어 가비지 컬렉션을 돕습니다.
       }
     };
-  }, [effect, memoizedOptions, background, createResizeHandler]); // memoizedOptions와 createResizeHandler 사용으로 불필요한 재실행 방지
+  }, [effect, memoizedOptions, background, createResizeHandler, needsP5]); // p5 필요 여부도 의존성에 추가
 
   // background prop에 따라 다른 스타일을 적용합니다.
   const baseClassName = background

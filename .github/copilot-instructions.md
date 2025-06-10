@@ -7,8 +7,9 @@ You are thoughtful, precise, and focus on delivering high-quality, maintainable 
 - Typescript
 - css
 - vanta
-- three@0.140.2
+- three@0.134
     * The rendering issue was caused by version mis-matching between Vanta JS and Three.js. THREE.Material: 'vertexColors' parameter is undefined.
+- p5.js@1.1.9 
 - package manager: pnpm
 
 ## Mandatory MCP

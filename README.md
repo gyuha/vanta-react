@@ -124,10 +124,16 @@ function DynamicExample() {
 - `rings` - Circular animation
 - `halo` - Halo effect
 - `ripple` - Ripple effect
-- `dots` - Dot animation
-- `topology` - Topology animation
-- `trunk` - Tree trunk animation
+- `dots` - Dot animation *(requires p5.js)*
+- `topology` - Topology animation *(requires p5.js)*
+- `trunk` - Tree trunk animation *(requires p5.js)*
 - `waves` - Wave animation
+
+### p5.js Effects
+
+Some effects (`dots`, `topology`, `trunk`) require p5.js in addition to Three.js. This library automatically detects which effects need p5.js and includes it when necessary.
+
+**No additional setup required** - p5.js is automatically provided to effects that need it.
 
 ## TypeScript Support
 
