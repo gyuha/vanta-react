@@ -38,9 +38,13 @@
   },
   "packageManager": "pnpm@8.15.1",
   "license": "MIT",
-  "author": "Your Name",
+  "author": "gyuha <gyuha@gyuha.net>",
   "repository": {
     "type": "git",
     "url": "https://github.com/gyuha/vanta-react.git"
+  },
+  "homepage": "https://github.com/gyuha/vanta-react#readme",
+  "bugs": {
+    "url": "https://github.com/gyuha/vanta-react/issues"
   }
 }
