@@ -1,17 +1,27 @@
-# Vanta React 배경 효과
+# Vanta React - CDN 최적화
 
-React 16 호환성과 완전한 TypeScript 지원을 제공하는 Vanta.js 애니메이션 배경 컴포넌트 라이브러리입니다.
+> **한국어** | [English](./README.md) | [CDN Guide](./README-CDN.md)
+
+React 16 호환성과 완전한 TypeScript 지원을 제공하는 **CDN 우선 아키텍처** 기반 Vanta.js 애니메이션 배경 컴포넌트 라이브러리입니다.
+
+## 🌟 CDN 우선 장점
+
+- 📦 **초경량 번들**: ~18KB (기존 1.9MB 대비 99% 감소)
+- 🌐 **CDN 로딩**: Three.js, p5.js, Vanta를 CDN에서 동적 로드
+- ⚡ **빠른 로딩**: 웹사이트 간 라이브러리 캐시 공유
+- 🔄 **자동 업데이트**: 항상 최신 라이브러리 버전 사용
+- 🛡️ **스마트 폴백**: 내장된 에러 처리 및 복구 기능
 
 ## ✨ 특징
 
-- 🎨 **15가지 Vanta 효과 지원** - net, waves, birds, cells 등 다양한 효과
+- 🎨 **14가지 Vanta 효과 지원** - net, waves, birds, cells 등 다양한 효과
 - 🔧 **완전한 TypeScript 지원** - 타입 안전성과 IntelliSense 제공
 - ⚛️ **React 16 호환** - 레거시 프로젝트에서도 사용 가능
 - 🎯 **유연한 사용법** - 전체 화면 배경 또는 컨테이너 모드
 - 🧹 **자동 메모리 관리** - 컴포넌트 언마운트 시 자동 정리
-- 📦 **번들된 의존성** - Three.js와 p5.js가 포함되어 원활한 통합 제공
-- 🚀 **성능 모니터링** - 개발 환경에서 성능 모니터링 기능 내장
-- 🔄 **동적 로딩** - 필요한 효과만 로드하여 번들 크기 최적화
+- 🌐 **CDN 의존성** - jsdelivr CDN에서 Three.js와 p5.js 로드
+- 🔄 **동적 로딩** - CDN에서 필요한 효과만 로드
+- 🛡️ **에러 바운더리** - 내장된 에러 처리 및 복구 옵션
 
 ## 설치
 
@@ -26,33 +36,44 @@ yarn add vanta-react
 pnpm add vanta-react
 ```
 
-## 기본 사용법
+## 빠른 시작
 
-### 전체 화면 배경
+### 1. CDN 라이브러리 초기화
 
 ```tsx
-import React from 'react';
-import { Vanta } from 'vanta-react';
+import React, { useEffect, useState } from 'react';
+import { Vanta, preloadLibraries } from 'vanta-react';
 
 function App() {
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    const initLibraries = async () => {
+      try {
+        // CDN에서 Three.js와 p5.js 로드
+        await preloadLibraries();
+        setIsReady(true);
+      } catch (error) {
+        console.error('라이브러리 로딩 실패:', error);
+      }
+    };
+
+    initLibraries();
+  }, []);
+
+  if (!isReady) {
+    return <div>CDN에서 라이브러리 로딩 중...</div>;
+  }
+
   return (
-    <div>
-      {/* 전체 화면 배경으로 사용 */}
-      <Vanta
-        effect="net"
-        background={true}
-        options={{
-          color: 0x3f7fb3,
-          points: 8.00,
-          maxDistance: 23.00,
-          spacing: 17.00,
-        }}
-      />
-      
-      <div style={{ position: 'relative', zIndex: 1 }}>
-        <h1>여기에 콘텐츠를 넣으세요</h1>
-      </div>
-    </div>
+    <Vanta
+      effect="waves"
+      options={{
+        mouseControls: true,
+        touchControls: true,
+        color: 0x3f6b7d
+      }}
+    />
   );
 }
 ```
