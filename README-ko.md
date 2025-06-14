@@ -6,35 +6,15 @@ React 16+ 호환성과 완전한 TypeScript 지원을 제공하는 **CDN 우선 
 
 ## 🌟 주요 특징
 
-- 📦 **초경량 번들**: ~20KB (기존 1.9MB 대비 99% 감소)
-- 🔄 **자동 로딩**: 수동 설정 없이 props만 전달하면 됩니다!
+- 📦 **초경량 번들**: ~21KB CDN 최적화 패키지
+- 🚀 **제로 설정**: 설치 후 바로 사용 - 자동 라이브러리 로딩
 - 🌐 **CDN 최적화**: Three.js, p5.js, Vanta를 CDN에서 자동 로드
 - ⚡ **스마트 캐싱**: 웹사이트 간 라이브러리 캐시 공유
 - 🛡️ **에러 복구**: 내장된 재시도 및 폴백 메커니즘
 - 🎨 **14가지 효과**: 전체 Vanta 효과 라이브러리 지원
 - 🔧 **TypeScript**: 완전한 타입 안전성
 - ⚛️ **React 16+**: 레거시 및 모던 React 호환
-
-## ✨ 최신 업데이트 (v0.4.2)
-
-**조용한 동작** - 디버그 메시지 없는 깔끔한 콘솔 출력!
-
-- 🔇 **콘솔 로그 제거**: 프로덕션에서 더 이상 디버그 메시지 없음
-- 🚀 **자동 로딩**: 수동 설정 없는 원활한 라이브러리 로딩  
-- ⚛️ **React 16 수정**: TanStack Router와의 호환성 문제 해결
-
-```tsx
-// ✅ 새로운 방식 (v0.4.0+) - 그냥 사용하세요!
-<Vanta effect="net" options={{ color: 0x3f7fb3 }} />
-
-// ❌ 이전 방식 (v0.3.0) - 수동 프리로딩 필요
-const [ready, setReady] = useState(false);
-useEffect(() => {
-  preloadLibraries().then(() => setReady(true));
-}, []);
-if (!ready) return <div>로딩 중...</div>;
-return <Vanta effect="net" />;
-```
+- 🔇 **조용한 동작**: 디버그 메시지 없는 깔끔한 콘솔 출력
 
 ## 설치
 
@@ -49,9 +29,9 @@ yarn add vanta-react
 pnpm add vanta-react
 ```
 
-## 빠른 시작
+## 사용법
 
-### 1. 기본 사용법 (자동 로딩)
+### 기본 사용법
 
 ```tsx
 import React from 'react';
@@ -71,7 +51,7 @@ function App() {
 }
 ```
 
-### 2. 전체 화면 배경
+### 전체 화면 배경
 
 ```tsx
 import React from 'react';
@@ -99,7 +79,7 @@ function FullScreenExample() {
 }
 ```
 
-### 3. 커스텀 로딩 UI
+### 커스텀 로딩 UI
 
 ```tsx
 import React from 'react';
@@ -131,18 +111,18 @@ function CustomLoadingExample() {
   );
 ```
 
-## 자동 로딩 설정
+## 설정
 
 ### 기본 동작
 
 기본적으로 Vanta 컴포넌트는 필요한 라이브러리를 자동으로 로드합니다:
 
 ```tsx
-// ✅ 그냥 작동합니다 - 설정 불필요!
+// 그냥 작동합니다 - 설정 불필요!
 <Vanta effect="net" options={{ color: 0x3f7fb3 }} />
 ```
 
-### 자동 로딩 Props
+### Props 참조
 
 | Prop | 타입 | 기본값 | 설명 |
 |------|------|--------|------|
@@ -181,9 +161,9 @@ function ErrorHandlingExample() {
 }
 ```
 
-### 자동 로딩 비활성화 (레거시 모드)
+### 자동 로딩 비활성화 (수동 제어)
 
-수동 제어나 테스트를 위해 자동 로딩을 비활성화할 수 있습니다:
+수동 제어나 특정 사용 사례를 위해 자동 로딩을 비활성화할 수 있습니다:
 
 ```tsx
 import React, { useEffect, useState } from 'react';
@@ -387,17 +367,6 @@ const vantaProps: VantaProps = {
 };
 ```
 
-## 번들 크기 비교
-
-| 버전 | 번들 크기 | 설명 |
-|------|-----------|------|
-| v0.2.0 (로컬) | ~1.9 MB | Three.js + p5.js 번들됨 |
-| v0.3.0+ (CDN) | ~18 KB | CDN 최적화 및 자동 로딩 |
-| v0.4.1 (React 수정) | ~20 KB | React 16 호환성 + 자동 로딩 |
-| **v0.4.2 (현재)** | **~21 KB** | **조용한 동작 + 깔끔한 콘솔 출력** |
-
-**감소율: 99% 더 작은 번들 크기!**
-
 ## 사용되는 CDN URL
 
 ```javascript
@@ -409,53 +378,6 @@ https://cdn.jsdelivr.net/npm/p5@1.1.9/lib/p5.min.js
 
 // Vanta 효과 (최신)
 https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.{effect}.min.js
-```
-
-## 마이그레이션 가이드
-
-### v0.2.0 → v0.3.0
-
-**주요 변경사항:**
-1. 라이브러리 로딩이 번들에서 CDN으로 변경
-2. 수동 `preloadLibraries()` 호출 필요
-
-```tsx
-// 이전 (v0.2.0)
-import { Vanta } from 'vanta-react';
-function App() {
-  return <Vanta effect="waves" />;
-}
-
-// 이후 (v0.3.0)
-import { Vanta, preloadLibraries } from 'vanta-react';
-function App() {
-  const [ready, setReady] = useState(false);
-  useEffect(() => {
-    preloadLibraries().then(() => setReady(true));
-  }, []);
-  if (!ready) return <div>로딩 중...</div>;
-  return <Vanta effect="waves" />;
-}
-```
-
-### v0.3.0 → v0.4.0+ (현재)
-
-**새로운 기능:**
-1. 자동 라이브러리 로딩 (수동 설정 불필요)
-2. 향상된 에러 처리 및 재시도 메커니즘
-3. 커스텀 로딩/에러 UI 지원
-
-```tsx
-// 이전 (v0.3.0) - 수동 프리로딩
-const [ready, setReady] = useState(false);
-useEffect(() => {
-  preloadLibraries().then(() => setReady(true));
-}, []);
-if (!ready) return <div>로딩 중...</div>;
-return <Vanta effect="waves" />;
-
-// 이후 (v0.4.0+) - 자동 로딩
-return <Vanta effect="waves" />; // 그냥 작동합니다!
 ```
 
 ## 에러 처리
@@ -547,16 +469,8 @@ pnpm install
 # 개발 서버 시작
 pnpm dev
 
-# CDN 데모 시작
-pnpm demo:cdn
-
-# 라이브러리 빌드
+# 빌드
 pnpm build
-
-# 테스트 앱 실행
-cd test-run
-pnpm install
-pnpm dev
 ```
 
 ## 문제 해결
@@ -605,7 +519,6 @@ MIT License - 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
 ---
 
 **🚀 React용 초고속, 자동 로딩 Vanta.js 배경!**  
-vanta-react v0.4.0+로 최소 번들 크기와 제로 설정을 즐기세요.
 
 # 개발 서버 실행
 pnpm dev

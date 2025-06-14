@@ -2,39 +2,19 @@
 
 > [한국어 문서](./README-ko.md) | English
 
-A React component library for Vanta.js animated backgrounds with **CDN-first architecture** for ultra-lightweight bundles and **automatic library loading**.
+A React component library for Vanta.js animated backgrounds with **automatic library loading** and **ultra-lightweight bundles**.
 
 ## 🌟 Key Features
 
-- 📦 **Ultra-Light Bundle**: ~18KB (vs 1.9MB with bundled libraries)
-- 🔄 **Automatic Loading**: No manual setup required - just pass props!
+- 📦 **Ultra-Light Bundle**: ~21KB CDN-optimized package
+- 🚀 **Zero Setup**: Just install and use - automatic library loading
 - 🌐 **CDN Optimized**: Three.js, p5.js, and Vanta loaded from CDN
-- ⚡ **Smart Caching**: Cached libraries across websites
-- 🛡️ **Error Recovery**: Built-in retry and fallback mechanisms
-- 🎨 **14 Vanta Effects**: Full effect library support
-- 🔧 **TypeScript**: Complete type safety out of the box
-- ⚛️ **React 16+**: Compatible with legacy and modern React
-
-## ✨ Latest Update (v0.4.2)
-
-**Silent Operation** - Clean console output without debug messages!
-
-- 🔇 **Removed Console Logs**: No more debug messages in production
-- 🚀 **Auto-Loading**: Seamless library loading without manual setup  
-- ⚛️ **React 16 Fix**: Resolved compatibility issues with TanStack Router
-
-```tsx
-// ✅ New way (v0.4.0+) - Just use it!
-<Vanta effect="net" options={{ color: 0x3f7fb3 }} />
-
-// ❌ Old way (v0.3.0) - Manual preloading required
-const [ready, setReady] = useState(false);
-useEffect(() => {
-  preloadLibraries().then(() => setReady(true));
-}, []);
-if (!ready) return <div>Loading...</div>;
-return <Vanta effect="net" />;
-```
+- ⚡ **Smart Caching**: Libraries cached across your entire website
+- 🛡️ **Error Recovery**: Built-in retry mechanisms and fallback handling
+- 🎨 **14 Vanta Effects**: Support for all Vanta.js effects
+- 🔧 **TypeScript**: Complete type safety and IntelliSense support
+- ⚛️ **React 16+**: Compatible with all modern React versions
+- 🔇 **Silent Operation**: Clean console output without debug messages
 
 ## Installation
 
@@ -131,13 +111,10 @@ function CustomLoadingExample() {
   );
 }
 ```
-```
 
-## 🚀 Auto-Loading Feature (v0.4.0+)
+## Usage
 
-Starting from v0.4.0, Vanta React includes **automatic library loading** functionality. No more manual `preloadLibraries()` calls required!
-
-### Simple Usage (Recommended)
+### Basic Usage
 
 ```tsx
 import React from 'react';
@@ -185,18 +162,18 @@ function AppWithCustomLoader() {
 }
 ```
 
-## Auto-Loading Configuration
+## Configuration
 
 ### Default Behavior
 
 By default, Vanta components automatically load required libraries:
 
 ```tsx
-// ✅ Just works - no setup needed!
+// Just works - no setup needed!
 <Vanta effect="net" options={{ color: 0x3f7fb3 }} />
 ```
 
-### Auto-Loading Props
+### Props Reference
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
@@ -235,9 +212,9 @@ function ErrorHandlingExample() {
 }
 ```
 
-### Disabling Auto-Loading (Legacy Mode)
+### Disabling Auto-Loading (Manual Control)
 
-For manual control or testing, you can disable auto-loading:
+For manual control or specific use cases, you can disable auto-loading:
 
 ```tsx
 import React, { useEffect, useState } from 'react';
@@ -268,28 +245,6 @@ function ManualLoadingExample() {
       effect="net"
       autoLoad={false}  // Disable auto-loading
       options={{ color: 0x3f7fb3 }}
-    />
-  );
-}
-
-```tsx
-import React, { useEffect, useState } from 'react';
-import { Vanta, preloadLibraries } from 'vanta-react';
-
-function LegacyApp() {
-  const [ready, setReady] = useState(false);
-  
-  useEffect(() => {
-    preloadLibraries().then(() => setReady(true));
-  }, []);
-  
-  if (!ready) return <div>Loading...</div>;
-  
-  return (
-    <Vanta
-      effect="waves"
-      autoLoad={false}  // Disable auto-loading
-      options={{ color: 0x3f6b7d }}
     />
   );
 }
@@ -618,16 +573,8 @@ pnpm install
 # Start development server
 pnpm dev
 
-# Start CDN demo
-pnpm demo:cdn
-
-# Build library
+# Build
 pnpm build
-
-# Run test app
-cd test-run
-pnpm install
-pnpm dev
 ```
 
 ## Troubleshooting
@@ -735,88 +682,49 @@ console.log(`Loaded ${status.loadedCount} effects`);
 console.log(`Loading ${status.loadingCount} effects`);
 ```
 
-## Migration from v0.2.0
+## TypeScript Support
 
-### Breaking Changes
-
-1. **Library Loading**: Must call `preloadLibraries()` before using Vanta components
-2. **Bundle Size**: Reduced from 1.9MB to 18KB
-3. **Dependencies**: `vanta` package no longer bundled (loaded from CDN)
-
-### Migration Steps
+Full TypeScript support with comprehensive type definitions:
 
 ```tsx
-// Before (v0.2.0)
-import { Vanta } from 'vanta-react';
+import { 
+  Vanta, 
+  VantaEffectName, 
+  VantaProps,
+  ErrorBoundary,
+  preloadLibraries,
+  loadVantaEffectFromCdn,
+  type VantaEffect
+} from 'vanta-react';
 
-function App() {
-  return <Vanta effect="waves" />;
-}
+// Type-safe effect selection
+const effect: VantaEffectName = 'net';
 
-// After (v0.3.0 - Manual Loading)
-import { Vanta, preloadLibraries } from 'vanta-react';
-
-function App() {
-  const [ready, setReady] = useState(false);
-  
-  useEffect(() => {
-    preloadLibraries().then(() => setReady(true));
-  }, []);
-  
-  if (!ready) return <div>Loading...</div>;
-  
-  return <Vanta effect="waves" autoLoad={false} />;
-}
-
-// After (v0.4.0+ - Auto Loading, Recommended)
-import { Vanta } from 'vanta-react';
-
-function App() {
-  // No setup required! Libraries are automatically loaded
-  return <Vanta effect="waves" />;
-}
+// Full type support for props
+const vantaProps: VantaProps = {
+  effect: 'waves',
+  background: true,
+  style: { borderRadius: '10px' },
+  options: {
+    color: 0x3f7fb3,
+    waveHeight: 20,
+  },
+  className: 'my-vanta-background',
+  onLoadSuccess: () => console.log('Loaded!'),
+};
 ```
 
-### Migration to v0.4.0+ (Auto-Loading)
+## CDN URLs Used
 
-**Recommended Migration Path:**
+```javascript
+// Three.js (v0.134.0 - Vanta.js compatible)
+https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js
 
-1. **Remove manual preload code** - Delete `preloadLibraries()` calls and related state management
-2. **Simplify components** - Use Vanta components directly without setup
-3. **Optional customization** - Add custom loading/error UI if needed
+// p5.js (v1.1.9 - stable version)
+https://cdn.jsdelivr.net/npm/p5@1.1.9/lib/p5.min.js
 
-```tsx
-// ✅ New simplified approach (v0.4.0+)
-function App() {
-  return (
-    <div>
-      <Vanta effect="waves" />
-      <Vanta effect="net" background={true} />
-    </div>
-  );
-}
-
-// ✅ With custom loading UI
-function AppWithCustomUI() {
-  return (
-    <Vanta
-      effect="waves"
-      loadingComponent={<div>Custom loading...</div>}
-      onLoadSuccess={() => console.log('Ready!')}
-    />
-  );
-}
-
-// ✅ Legacy mode (if you prefer manual control)
-function LegacyApp() {
-  const [ready, setReady] = useState(false);
-  
-  useEffect(() => {
-    preloadLibraries().then(() => setReady(true));
-  }, []);
-  
-  return ready ? <Vanta effect="waves" autoLoad={false} /> : <div>Loading...</div>;
-}
+// Vanta Effects (latest)
+https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.{effect}.min.js
 ```
 
 ## Compatibility
@@ -850,18 +758,14 @@ pnpm build
 
 ## License
 
-MIT License
-
-## Contributing
-
-Bug reports, feature requests, and Pull Requests are welcome!
+MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Support
 
 - [GitHub Issues](https://github.com/gyuha/vanta-react/issues)
-- [CDN Documentation](./README-CDN.md)
-- [Korean Documentation](./README-ko.md)
+- [Documentation](https://github.com/gyuha/vanta-react#readme)
+- [Examples](./examples/)
 
 ---
 
-**🌐 CDN-first architecture for the modern web!** Enjoy ultra-fast loading and minimal bundle sizes with vanta-react v0.3.0.
+**🚀 Ultra-fast, auto-loading Vanta.js backgrounds for React!**
