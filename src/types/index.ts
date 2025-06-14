@@ -1,3 +1,5 @@
+import type React from 'react';
+
 /**
  * Vanta.js가 제공하는 효과 이름들을 TypeScript의 'string literal union' 타입으로 정의합니다.
  * 이를 통해 effect prop에 정해진 문자열만 사용하도록 강제하여 오타를 방지하고,
@@ -55,6 +57,26 @@ export interface VantaProps {
   style?: React.CSSProperties;
   /** true로 설정하면 화면 전체를 덮는 배경으로 동작합니다 (fixed positioning, full screen) */
   background?: boolean;
+  
+  // 자동 로딩 관련 props
+  /** 라이브러리를 자동으로 로드할지 여부 (기본값: true) */
+  autoLoad?: boolean;
+  /** 라이브러리 로딩 중에 표시할 커스텀 컴포넌트 */
+  loadingComponent?: React.ReactNode;
+  /** 에러 발생 시 표시할 커스텀 컴포넌트 또는 렌더 함수 */
+  errorComponent?: React.ReactNode | ((error: string, retry: () => void) => React.ReactNode);
+  /** 로딩 실패 시 재시도 횟수 (기본값: 3) */
+  retryCount?: number;
+  /** 재시도 간격 (밀리초, 기본값: 1000) */
+  retryDelay?: number;
+  
+  // 라이브러리 로딩 이벤트 콜백들
+  /** 라이브러리 로딩이 시작될 때 호출되는 콜백 */
+  onLoadStart?: () => void;
+  /** 라이브러리 로딩이 성공적으로 완료될 때 호출되는 콜백 */
+  onLoadSuccess?: () => void;
+  /** 라이브러리 로딩 중 에러가 발생할 때 호출되는 콜백 */
+  onLoadError?: (error: string) => void;
 }
 
 // /**

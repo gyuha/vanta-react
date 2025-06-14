@@ -1,7 +1,105 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import type { VantaProps, VantaEffect } from '../types';
 import { loadVantaEffect } from '../utils/vanta-loader';
-import { areLibrariesReady, getPreloadedThree, getPreloadedP5 } from '../utils/preload-libraries';
+import { areLibrariesReady, getPreloadedThree, getPreloadedP5, preloadLibraries } from '../utils/preload-libraries';
+
+/**
+ * 기본 로딩 컴포넌트
+ */
+const DefaultLoadingComponent: React.FC = () => (
+  <div style={{
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '100%',
+    padding: '20px',
+    backgroundColor: 'var(--vanta-loading-bg, rgba(0, 0, 0, 0.1))',
+    color: 'var(--vanta-loading-text, #666)',
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+  }}>
+    <div style={{
+      width: '40px',
+      height: '40px',
+      border: '3px solid var(--vanta-loading-border, #e0e0e0)',
+      borderTop: '3px solid var(--vanta-loading-accent, #007bff)',
+      borderRadius: '50%',
+      animation: 'vanta-spin 1s linear infinite',
+      marginBottom: '16px',
+    }} />
+    <style>{`
+      @keyframes vanta-spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    `}</style>
+    <p style={{ margin: 0, fontSize: '14px', textAlign: 'center' }}>
+      🌐 Vanta 라이브러리 로딩 중...
+    </p>
+  </div>
+);
+
+/**
+ * 기본 에러 컴포넌트
+ */
+const DefaultErrorComponent: React.FC<{ error: string; onRetry: () => void }> = ({ error, onRetry }) => (
+  <div style={{
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '100%',
+    padding: '20px',
+    backgroundColor: 'var(--vanta-error-bg, rgba(255, 0, 0, 0.05))',
+    color: 'var(--vanta-error-text, #d32f2f)',
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+    textAlign: 'center',
+  }}>
+    <div style={{
+      fontSize: '48px',
+      marginBottom: '16px',
+    }}>
+      ⚠️
+    </div>
+    <h3 style={{
+      margin: '0 0 12px 0',
+      fontSize: '16px',
+      fontWeight: '600',
+    }}>
+      Vanta 라이브러리 로딩 실패
+    </h3>
+    <p style={{
+      margin: '0 0 20px 0',
+      fontSize: '14px',
+      opacity: 0.8,
+      maxWidth: '300px',
+    }}>
+      {error}
+    </p>
+    <button
+      onClick={onRetry}
+      style={{
+        padding: '8px 16px',
+        backgroundColor: 'var(--vanta-error-button-bg, #d32f2f)',
+        color: 'var(--vanta-error-button-text, white)',
+        border: 'none',
+        borderRadius: '4px',
+        fontSize: '14px',
+        fontWeight: '500',
+        cursor: 'pointer',
+        transition: 'background-color 0.2s ease',
+      }}
+      onMouseOver={(e) => {
+        e.currentTarget.style.backgroundColor = 'var(--vanta-error-button-hover, #b71c1c)';
+      }}
+      onMouseOut={(e) => {
+        e.currentTarget.style.backgroundColor = 'var(--vanta-error-button-bg, #d32f2f)';
+      }}
+    >
+      🔄 다시 시도
+    </button>
+  </div>
+);
 
 /**
  * Vanta.js 효과를 React 컴포넌트로 래핑한 컴포넌트입니다.
@@ -13,6 +111,15 @@ const Vanta: React.FC<VantaProps> = ({
   className = '',
   style,
   background = false,
+  // 자동 로딩 관련 props
+  autoLoad = true,
+  loadingComponent,
+  errorComponent,
+  retryCount = 3,
+  retryDelay = 1000,
+  onLoadStart,
+  onLoadSuccess,
+  onLoadError,
 }) => {
   // Vanta 효과 인스턴스를 저장하는 ref
   const vantaEffectRef = useRef<VantaEffect | null>(null);
@@ -21,6 +128,11 @@ const Vanta: React.FC<VantaProps> = ({
   // 로딩 상태 관리
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  
+  // 자동 로딩 관련 상태
+  const [libraryLoadingState, setLibraryLoadingState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [libraryError, setLibraryError] = useState<string | null>(null);
+  const [retryAttempts, setRetryAttempts] = useState(0);
 
   // options 객체의 불필요한 재생성을 방지하기 위한 메모이제이션
   const memoizedOptions = useMemo(() => options, [options]);
@@ -44,7 +156,87 @@ const Vanta: React.FC<VantaProps> = ({
     };
   }, []);
 
+  // 재시도 함수
+  const retryLoadLibraries = useCallback(async () => {
+    if (retryAttempts >= retryCount) {
+      return;
+    }
+
+    setRetryAttempts(prev => prev + 1);
+    setLibraryError(null);
+    setLibraryLoadingState('loading');
+
+    try {
+      await new Promise(resolve => setTimeout(resolve, retryDelay));
+      await preloadLibraries();
+      setLibraryLoadingState('success');
+      onLoadSuccess?.();
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown library loading error';
+      setLibraryError(errorMessage);
+      setLibraryLoadingState('error');
+      onLoadError?.(errorMessage);
+    }
+  }, [retryAttempts, retryCount, retryDelay, onLoadSuccess, onLoadError]);
+
+  // 자동 라이브러리 로딩 useEffect
   useEffect(() => {
+    if (!autoLoad) {
+      // autoLoad가 false면 기존 방식으로 라이브러리가 이미 로드되었는지만 확인
+      if (areLibrariesReady()) {
+        setLibraryLoadingState('success');
+      } else {
+        setLibraryLoadingState('error');
+        setLibraryError('Libraries not preloaded. Please call preloadLibraries() manually or set autoLoad=true.');
+      }
+      return;
+    }
+
+    // 이미 라이브러리가 로드되어 있으면 스킵
+    if (areLibrariesReady()) {
+      setLibraryLoadingState('success');
+      return;
+    }
+
+    let isMounted = true;
+
+    const loadLibraries = async () => {
+      if (!isMounted) return;
+
+      setLibraryLoadingState('loading');
+      setLibraryError(null);
+      setRetryAttempts(0);
+      onLoadStart?.();
+
+      try {
+        await preloadLibraries();
+        if (isMounted) {
+          setLibraryLoadingState('success');
+          onLoadSuccess?.();
+        }
+      } catch (error) {
+        if (isMounted) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown library loading error';
+          setLibraryError(errorMessage);
+          setLibraryLoadingState('error');
+          onLoadError?.(errorMessage);
+        }
+      }
+    };
+
+    loadLibraries();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [autoLoad, onLoadStart, onLoadSuccess, onLoadError]);
+
+  useEffect(() => {
+    // 라이브러리가 아직 로딩 중이거나 에러 상태면 Vanta 효과 초기화를 스킵
+    if (libraryLoadingState !== 'success') {
+      return;
+    }
+
     let isMounted = true; // 클린업 함수에서의 비동기 작업 충돌을 방지하기 위한 플래그
     let initializationPromise: Promise<void> | null = null;
 
@@ -249,7 +441,7 @@ const Vanta: React.FC<VantaProps> = ({
         vantaEffectRef.current = null;
       }
     };
-  }, [effect, memoizedOptions, background, createResizeHandler, needsP5]); // needsP5는 효과별 라이브러리 요구사항 확인용
+  }, [effect, memoizedOptions, background, createResizeHandler, needsP5, libraryLoadingState]); // needsP5는 효과별 라이브러리 요구사항 확인용
 
   // background prop에 따라 다른 스타일을 적용합니다.
   const baseClassName = background
@@ -259,6 +451,24 @@ const Vanta: React.FC<VantaProps> = ({
   // 로딩 중이거나 에러가 있는 경우의 처리
   if (loadError) {
     console.warn(`Vanta effect load error: ${loadError}`);
+  }
+
+  // 라이브러리 로딩 중인 경우
+  if (libraryLoadingState === 'loading') {
+    return loadingComponent || <DefaultLoadingComponent />;
+  }
+
+  // 라이브러리 로딩 에러인 경우
+  if (libraryLoadingState === 'error') {
+    if (typeof errorComponent === 'function') {
+      return errorComponent(libraryError || 'Unknown error', retryLoadLibraries);
+    }
+    return errorComponent || <DefaultErrorComponent error={libraryError || 'Unknown error'} onRetry={retryLoadLibraries} />;
+  }
+
+  // 라이브러리가 준비되지 않은 경우 (autoLoad=false이고 수동 로드도 안된 경우)
+  if (libraryLoadingState !== 'success') {
+    return null;
   }
 
   return React.createElement('div', {
