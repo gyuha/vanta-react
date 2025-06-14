@@ -1,0 +1,49 @@
+# 개발 관련 파일들
+dev/
+examples/
+test-run/
+task-data/
+src/
+*.html
+*.md
+!README.md
+!README-ko.md
+
+# 설정 파일들
+vite.config.ts
+vite.cdn.config.ts
+tsconfig.json
+biome.json
+eslint.config.js
+
+# 개발 스크립트들
+cdn-demo.html
+cdn-main.tsx
+test-effects.html
+
+# 로그 및 임시 파일들
+*.log
+*.tmp
+.DS_Store
+
+# IDE 설정
+.vscode/
+.idea/
+
+# 테스트 파일들
+*.test.*
+*.spec.*
+
+# 빌드 도구 설정
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+
+# 환경 설정
+.env*
+
+# 기타 개발 파일들
+*.md
+!README.md
+!README-ko.md
+!LICENSE

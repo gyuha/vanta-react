@@ -1,12 +1,15 @@
 {
   "name": "vanta-react",
-  "version": "0.3.1",
-  "description": "React components for Vanta.js animated backgrounds with TypeScript support - CDN optimized",
+  "version": "0.4.1",
+  "description": "React components for Vanta.js animated backgrounds with TypeScript support - CDN optimized with automatic library loading",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "README-ko.md",
+    "LICENSE"
   ],
   "keywords": [
     "react",

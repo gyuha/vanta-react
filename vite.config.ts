@@ -6,7 +6,9 @@ import { fileURLToPath, URL } from 'node:url';
 
 export default defineConfig({
   plugins: [
-    react(),
+    react({
+      jsxRuntime: 'classic', // React 16 호환성을 위해 classic runtime 사용
+    }),
     dts({
       insertTypesEntry: true,
       rollupTypes: true,
@@ -20,11 +22,12 @@ export default defineConfig({
       fileName: (format) => format === 'es' ? 'index.es.js' : 'index.js',
     },
     rollupOptions: {
-      external: ['react', 'react-dom'],
+      external: ['react', 'react-dom', 'react/jsx-runtime'],
       output: {
         globals: {
           react: 'React',
           'react-dom': 'ReactDOM',
+          'react/jsx-runtime': 'React',
         },
       },
     },

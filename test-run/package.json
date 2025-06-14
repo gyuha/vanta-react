@@ -12,7 +12,7 @@
   "dependencies": {
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
-    "vanta-react": "link:.."
+    "vanta-react": "^0.4.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
