@@ -14,7 +14,8 @@ interface ErrorBoundaryState {
 
 /**
  * Vanta 컴포넌트를 위한 에러 바운더리
- * React 16 호환성을 보장하며, Vanta 효과 관련 오류를 안전하게 처리합니다.
+ * React 16+ 호환성을 보장하며, Vanta 효과 관련 오류를 안전하게 처리합니다.
+ * React 19에서 테스트되고 최적화되었습니다.
  */
 class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   private retryTimeoutId: number | null = null;

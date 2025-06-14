@@ -14,6 +14,7 @@ let preloadError: Error | null = null;
 /**
  * three.js와 p5.js를 CDN에서 앱 시작 시점에 미리 로드합니다.
  * 중복 호출을 방지하고 Promise 기반 동기화를 제공합니다.
+ * React 19 호환성을 위해 개선되었습니다.
  */
 export const preloadLibraries = async (): Promise<void> => {
   // 이미 로드가 완료되었다면 즉시 반환
@@ -36,27 +37,42 @@ export const preloadLibraries = async (): Promise<void> => {
     try {
       console.log('[Preload] Starting library preload from CDN...');
       
-      // three.js와 p5.js를 병렬로 CDN에서 로드
-      const [THREE, p5] = await Promise.all([
-        loadCdnThree(),
-        loadCdnP5()
-      ]);
+      // React 19에서 더 안전한 병렬 로딩
+      const loadingPromises = [
+        loadCdnThree().catch(error => {
+          console.error('[Preload] THREE.js loading failed:', error);
+          throw new Error(`Failed to load THREE.js: ${error.message}`);
+        }),
+        loadCdnP5().catch(error => {
+          console.error('[Preload] p5.js loading failed:', error);
+          throw new Error(`Failed to load p5.js: ${error.message}`);
+        })
+      ];
+      
+      const [THREE, p5] = await Promise.all(loadingPromises);
 
       // 전역 객체에 라이브러리 할당 (안전성을 위해 명시적 확인)
       if (THREE && typeof window !== 'undefined') {
         (window as any).THREE = THREE;
+        console.log('[Preload] THREE.js assigned to global window');
       } else {
         throw new Error('Failed to load THREE.js properly from CDN');
       }
 
       if (p5 && typeof window !== 'undefined') {
         (window as any).p5 = p5;
+        console.log('[Preload] p5.js assigned to global window');
       } else {
         throw new Error('Failed to load p5.js properly from CDN');
       }
 
-      librariesPreloaded = true;
-      console.log('[Preload] Libraries preloaded successfully from CDN');
+      // React 19에서 상태 업데이트 검증
+      if (typeof window !== 'undefined' && (window as any).THREE && (window as any).p5) {
+        librariesPreloaded = true;
+        console.log('[Preload] Libraries preloaded successfully from CDN');
+      } else {
+        throw new Error('Library assignment verification failed');
+      }
       
     } catch (error) {
       preloadError = error instanceof Error ? error : new Error('Unknown CDN preload error');

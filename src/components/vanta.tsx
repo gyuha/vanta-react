@@ -46,6 +46,7 @@ const Vanta: React.FC<VantaProps> = ({
 
   useEffect(() => {
     let isMounted = true; // 클린업 함수에서의 비동기 작업 충돌을 방지하기 위한 플래그
+    let initializationPromise: Promise<void> | null = null;
 
     // 개발 모드에서 useEffect 실행 로깅
     if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
@@ -57,19 +58,40 @@ const Vanta: React.FC<VantaProps> = ({
 
       // 1. 기존 효과가 있다면 안전하게 파괴합니다.
       if (vantaEffectRef.current) {
-        vantaEffectRef.current.destroy();
+        try {
+          vantaEffectRef.current.destroy();
+        } catch (destroyError) {
+          console.warn('[Vanta] Error destroying previous effect:', destroyError);
+        }
         vantaEffectRef.current = null;
       }
 
       // 2. 로딩 상태 설정
-      setIsLoading(true);
-      setLoadError(null);
+      if (isMounted) {
+        setIsLoading(true);
+        setLoadError(null);
+      }
 
       try {
-        // 3. 라이브러리 준비 상태 확인
-        if (!areLibrariesReady()) {
-          setLoadError('Libraries not ready. Please wait for app initialization.');
-          console.warn('[Vanta] Libraries are not preloaded. Ensure preloadLibraries() is called before using Vanta components.');
+        // 3. 라이브러리 준비 상태 확인 - React 19에서 더 안전한 체크
+        const maxRetries = 5;
+        let retryCount = 0;
+        
+        while (retryCount < maxRetries && isMounted) {
+          if (areLibrariesReady()) {
+            break;
+          }
+          
+          if (retryCount === 0) {
+            console.warn('[Vanta] Libraries are not preloaded. Ensure preloadLibraries() is called before using Vanta components.');
+          }
+          
+          retryCount++;
+          await new Promise(resolve => setTimeout(resolve, 100 * retryCount)); // 지수 백오프
+        }
+        
+        if (!areLibrariesReady() && isMounted) {
+          setLoadError('Libraries not ready after multiple attempts. Please ensure preloadLibraries() is called.');
           return;
         }
 
@@ -83,20 +105,22 @@ const Vanta: React.FC<VantaProps> = ({
             p5 = getPreloadedP5();
           }
         } catch (libraryError) {
-          setLoadError(`Library access error: ${libraryError instanceof Error ? libraryError.message : 'Unknown error'}`);
+          if (isMounted) {
+            setLoadError(`Library access error: ${libraryError instanceof Error ? libraryError.message : 'Unknown error'}`);
+          }
           return;
         }
 
         // 5. 효과 모듈을 동적으로 로드합니다.
         const VantaCreator = await loadVantaEffect(effect);
         
-        if (!VantaCreator) {
+        if (!VantaCreator && isMounted) {
           setLoadError(`Effect "${effect}" not found`);
           return;
         }
 
-        // 6. 컴포넌트가 여전히 마운트되어 있고 DOM 요소가 존재하는지 확인
-        if (isMounted && vantaRef.current) {
+        // 6. 컴포넌트가 여전히 마운트되어 있고 DOM 요소가 존재하는지 확인 (React 19 안전성)
+        if (isMounted && vantaRef.current && VantaCreator) {
           // 배경 모드일 때 컨테이너 크기를 명시적으로 설정
           if (background && vantaRef.current) {
             // DOM 요소의 크기를 즉시 설정
@@ -132,13 +156,23 @@ const Vanta: React.FC<VantaProps> = ({
 
           vantaEffectRef.current = VantaCreator(effectOptions);
 
+          // React 19 호환성: 효과 생성 검증
+          if (!vantaEffectRef.current && isMounted) {
+            setLoadError(`Failed to create effect "${effect}"`);
+            return;
+          }
+
           // 배경 모드일 때 추가 설정 및 리사이즈 이벤트 처리
-          if (background && vantaEffectRef.current) {
-            // 초기 크기 조정
-            setTimeout(() => {
-              if (vantaEffectRef.current && vantaRef.current) {
-                if (vantaEffectRef.current.resize) {
-                  vantaEffectRef.current.resize();
+          if (background && vantaEffectRef.current && isMounted) {
+            // 초기 크기 조정 - React 19에서 더 안전한 타이밍
+            const resizeTimeout = setTimeout(() => {
+              if (vantaEffectRef.current && vantaRef.current && isMounted) {
+                try {
+                  if (vantaEffectRef.current.resize) {
+                    vantaEffectRef.current.resize();
+                  }
+                } catch (resizeError) {
+                  console.warn('[Vanta] Resize error:', resizeError);
                 }
               }
             }, 100);
@@ -150,6 +184,7 @@ const Vanta: React.FC<VantaProps> = ({
             // 클린업에서 리사이즈 이벤트 제거
             const currentCleanup = () => {
               window.removeEventListener('resize', handleResize);
+              clearTimeout(resizeTimeout);
             };
             
             // 기존 클린업 함수와 합치기 위해 저장
@@ -158,7 +193,9 @@ const Vanta: React.FC<VantaProps> = ({
         }
       } catch (error) {
         console.error(`Vanta.js effect "${effect}" failed to initialize:`, error);
-        setLoadError(`Failed to initialize effect "${effect}"`);
+        if (isMounted) {
+          setLoadError(`Failed to initialize effect "${effect}"`);
+        }
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -166,19 +203,50 @@ const Vanta: React.FC<VantaProps> = ({
       }
     };
 
-    initializeVantaEffect();
+    // React 19에서 중복 실행 방지
+    if (!initializationPromise) {
+      initializationPromise = initializeVantaEffect();
+    }
 
     // 8. 클린업 함수: 컴포넌트가 언마운트되거나 의존성이 변경될 때 호출됩니다.
     return () => {
       isMounted = false;
-      if (vantaEffectRef.current) {
-        // 커스텀 클린업 함수 실행
-        const effectWithCleanup = vantaEffectRef.current as VantaEffect & { _customCleanup?: () => void };
-        if (effectWithCleanup._customCleanup) {
-          effectWithCleanup._customCleanup();
+      
+      // 초기화 중인 Promise가 있다면 완료를 기다림
+      if (initializationPromise) {
+        initializationPromise.finally(() => {
+          if (vantaEffectRef.current) {
+            // 커스텀 클린업 함수 실행
+            const effectWithCleanup = vantaEffectRef.current as VantaEffect & { _customCleanup?: () => void };
+            if (effectWithCleanup._customCleanup) {
+              try {
+                effectWithCleanup._customCleanup();
+              } catch (cleanupError) {
+                console.warn('[Vanta] Cleanup error:', cleanupError);
+              }
+            }
+            
+            try {
+              vantaEffectRef.current.destroy();
+            } catch (destroyError) {
+              console.warn('[Vanta] Destroy error:', destroyError);
+            }
+            
+            vantaEffectRef.current = null; // 참조를 명시적으로 null로 만들어 가비지 컬렉션을 돕습니다.
+          }
+        });
+      } else if (vantaEffectRef.current) {
+        // 즉시 클린업 가능한 경우
+        try {
+          const effectWithCleanup = vantaEffectRef.current as VantaEffect & { _customCleanup?: () => void };
+          if (effectWithCleanup._customCleanup) {
+            effectWithCleanup._customCleanup();
+          }
+          vantaEffectRef.current.destroy();
+        } catch (error) {
+          console.warn('[Vanta] Cleanup error:', error);
         }
-        vantaEffectRef.current.destroy();
-        vantaEffectRef.current = null; // 참조를 명시적으로 null로 만들어 가비지 컬렉션을 돕습니다.
+        vantaEffectRef.current = null;
       }
     };
   }, [effect, memoizedOptions, background, createResizeHandler, needsP5]); // needsP5는 효과별 라이브러리 요구사항 확인용

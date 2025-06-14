@@ -1,48 +1,25 @@
 import './App.css'
-import React, { useEffect, useState } from 'react';
-import { Vanta, preloadLibraries } from 'vanta-react';
+import { useState } from 'react';
+import { Vanta } from 'vanta-react';
 
 function App() {
-  const [isReady, setIsReady] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const initLibraries = async () => {
-      try {
-        console.log('Loading libraries from CDN...');
-        await preloadLibraries();
-        setIsReady(true);
-        console.log('Libraries loaded successfully!');
-      } catch (err) {
-        console.error('Failed to load libraries:', err);
-        setError(err instanceof Error ? err.message : 'Unknown error');
-      }
-    };
-
-    initLibraries();
-  }, []);
-
-  if (error) {
-    return (
-      <div style={{ padding: '20px', color: 'red' }}>
-        <h2>Error loading libraries</h2>
-        <p>{error}</p>
-      </div>
-    );
-  }
-
-  if (!isReady) {
-    return (
-      <div style={{ padding: '20px' }}>
-        <h2>Loading libraries from CDN...</h2>
-        <p>Please wait while Three.js and p5.js are loaded from CDN.</p>
-      </div>
-    );
-  }
+  const [count, setCount] = useState(0);
 
   return (
-    <>
-      <Vanta
+    <div style={{ padding: '20px' }}>
+      <h1>Vanta React Test</h1>
+      <p>React is working!</p>
+      
+      <div style={{ marginTop: '20px' }}>
+        <h3>Library Status:</h3>
+      </div>
+      
+      <div style={{ marginTop: '20px' }}>
+        <button type="button" onClick={() => setCount(count + 1)}>
+          Count: {count}
+        </button>
+      </div>
+           <Vanta
         effect="net"
         background={true}
         options={{
@@ -51,19 +28,9 @@ function App() {
           maxDistance: 23.00,
           spacing: 17.00,
         }}
-      />
-      <div style={{ 
-        position: 'relative', 
-        zIndex: 1, 
-        padding: '20px',
-        color: 'white',
-        textAlign: 'center'
-      }}>
-        <h1>Vanta React Test</h1>
-        <p>CDN-first architecture working!</p>
-      </div>
-    </>
-  )
+      /> 
+    </div>
+  );
 }
 
 export default App

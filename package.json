@@ -27,8 +27,8 @@
     "demo:cdn": "vite --config vite.cdn.config.ts --open /cdn-demo.html"
   },
   "peerDependencies": {
-    "react": "^16.0.0",
-    "react-dom": "^16.0.0"
+    "react": ">=16.0.0",
+    "react-dom": ">=16.0.0"
   },
   "dependencies": {},
   "devDependencies": {
@@ -43,7 +43,7 @@
   },
   "packageManager": "pnpm@8.15.1",
   "license": "MIT",
-  "author": "gyuha <gyuha@gyuha.net>",
+  "author": "gyuha <nicegyuha@gmail.com>",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/gyuha/vanta-react.git"
