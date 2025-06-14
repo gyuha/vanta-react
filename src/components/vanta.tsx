@@ -240,11 +240,6 @@ const Vanta: React.FC<VantaProps> = ({
     let isMounted = true; // 클린업 함수에서의 비동기 작업 충돌을 방지하기 위한 플래그
     let initializationPromise: Promise<void> | null = null;
 
-    // 개발 모드에서 useEffect 실행 로깅
-    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-      console.debug('[Vanta] useEffect triggered:', { effect, background, optionsKeys: Object.keys(memoizedOptions || {}) });
-    }
-
     const initializeVantaEffect = async () => {
       if (!vantaRef.current || !effect) return;
 

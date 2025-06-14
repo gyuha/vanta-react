@@ -53,11 +53,6 @@ export const startPerformanceMonitoring = (): PerformanceMetrics => {
   const startTime = performance.now();
   const memoryBefore = getMemoryUsage();
   
-  if (isPerformanceMonitoringEnabled()) {
-    console.log('🚀 Vanta preloading performance monitoring started');
-    console.log(`📊 Initial memory usage: ${(memoryBefore / 1024 / 1024).toFixed(2)} MB`);
-  }
-  
   return {
     startTime,
     memoryBefore,
@@ -91,19 +86,6 @@ export const finishPerformanceMonitoring = (
     errorMessage,
   };
   
-  if (isPerformanceMonitoringEnabled()) {
-    console.log('✅ Vanta preloading performance monitoring completed');
-    console.log(`⏱️  Total loading time: ${loadTime.toFixed(2)} ms`);
-    console.log(`📈 Effects loaded: ${effectsLoaded}`);
-    console.log(`🧠 Memory usage after: ${(memoryAfter / 1024 / 1024).toFixed(2)} MB`);
-    console.log(`📊 Memory increase: ${(memoryIncrease / 1024 / 1024).toFixed(2)} MB`);
-    console.log(`🎯 Average time per effect: ${(loadTime / Math.max(effectsLoaded, 1)).toFixed(2)} ms`);
-    
-    if (!success && errorMessage) {
-      console.log(`❌ Error: ${errorMessage}`);
-    }
-  }
-  
   return finalMetrics;
 };
 
@@ -111,8 +93,5 @@ export const finishPerformanceMonitoring = (
  * 진행률을 로깅하는 함수
  */
 export const logProgress = (loaded: number, total: number): void => {
-  if (isPerformanceMonitoringEnabled()) {
-    const percentage = (loaded / total * 100).toFixed(0);
-    console.log(`📈 Preloading progress: ${loaded}/${total} (${percentage}%)`);
-  }
+  // Progress tracking is available but no longer logs to console
 };

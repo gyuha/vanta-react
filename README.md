@@ -15,9 +15,13 @@ A React component library for Vanta.js animated backgrounds with **CDN-first arc
 - 🔧 **TypeScript**: Complete type safety out of the box
 - ⚛️ **React 16+**: Compatible with legacy and modern React
 
-## ✨ Latest Update (v0.4.0+)
+## ✨ Latest Update (v0.4.2)
 
-**Automatic Library Loading** - No more manual `preloadLibraries()` calls!
+**Silent Operation** - Clean console output without debug messages!
+
+- 🔇 **Removed Console Logs**: No more debug messages in production
+- 🚀 **Auto-Loading**: Seamless library loading without manual setup  
+- ⚛️ **React 16 Fix**: Resolved compatibility issues with TanStack Router
 
 ```tsx
 // ✅ New way (v0.4.0+) - Just use it!
@@ -460,7 +464,8 @@ const vantaProps: VantaProps = {
 |---------|-------------|-------------|
 | v0.2.0 (Local) | ~1.9 MB | Three.js + p5.js bundled |
 | v0.3.0+ (CDN) | ~18 KB | CDN-optimized with auto-loading |
-| **Current** | **~20 KB** | **Auto-loading + enhanced error handling** |
+| v0.4.1 (React Fix) | ~20 KB | React 16 compatibility + auto-loading |
+| **v0.4.2 (Current)** | **~21 KB** | **Silent operation + clean console output** |
 
 **Reduction: 99% smaller bundle size!**
 

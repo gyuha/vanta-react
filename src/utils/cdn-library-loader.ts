@@ -146,30 +146,21 @@ export const loadCdnVantaEffect = (effectName: string): Promise<any> => {
  * 필요한 라이브러리들을 병렬로 CDN에서 로드
  */
 export const loadCdnLibraries = async (needsP5 = false) => {
-  try {
-    console.log('[CDN] Starting library load from CDN...');
-    
-    // THREE.js와 p5.js를 병렬로 로드
-    const loadPromises: Promise<any>[] = [loadCdnThree()];
-    
-    if (needsP5) {
-      loadPromises.push(loadCdnP5());
-    }
-
-    const results = await Promise.all(loadPromises);
-    const THREE = results[0];
-    const p5 = needsP5 ? results[1] : undefined;
-
-    console.log('[CDN] Libraries loaded successfully from CDN');
-    
-    return {
-      THREE,
-      ...(needsP5 && { p5 })
-    };
-  } catch (error) {
-    console.error('[CDN] Failed to load libraries from CDN:', error);
-    throw error;
+  // THREE.js와 p5.js를 병렬로 로드
+  const loadPromises: Promise<any>[] = [loadCdnThree()];
+  
+  if (needsP5) {
+    loadPromises.push(loadCdnP5());
   }
+
+  const results = await Promise.all(loadPromises);
+  const THREE = results[0];
+  const p5 = needsP5 ? results[1] : undefined;
+  
+  return {
+    THREE,
+    ...(needsP5 && { p5 })
+  };
 };
 
 /**
@@ -199,20 +190,9 @@ export type VantaEffectName = typeof VANTA_EFFECTS[number];
  * 모든 Vanta 이펙트를 미리 로드 (선택사항)
  */
 export const preloadAllVantaEffects = async (): Promise<void> => {
-  try {
-    console.log('[CDN] Preloading all Vanta effects...');
-    
-    const loadPromises = VANTA_EFFECTS.map(effect => 
-      loadCdnVantaEffect(effect).catch(error => {
-        console.warn(`[CDN] Failed to preload effect ${effect}:`, error);
-        return null;
-      })
-    );
+  const loadPromises = VANTA_EFFECTS.map(effect => 
+    loadCdnVantaEffect(effect).catch(() => null)
+  );
 
-    await Promise.all(loadPromises);
-    console.log('[CDN] All Vanta effects preloaded');
-  } catch (error) {
-    console.error('[CDN] Failed to preload Vanta effects:', error);
-    throw error;
-  }
+  await Promise.all(loadPromises);
 };

@@ -35,16 +35,12 @@ export const preloadLibraries = async (): Promise<void> => {
   // 새로운 로딩 프로세스 시작
   preloadPromise = (async () => {
     try {
-      console.log('[Preload] Starting library preload from CDN...');
-      
       // React 19에서 더 안전한 병렬 로딩
       const loadingPromises = [
         loadCdnThree().catch(error => {
-          console.error('[Preload] THREE.js loading failed:', error);
           throw new Error(`Failed to load THREE.js: ${error.message}`);
         }),
         loadCdnP5().catch(error => {
-          console.error('[Preload] p5.js loading failed:', error);
           throw new Error(`Failed to load p5.js: ${error.message}`);
         })
       ];
@@ -54,14 +50,12 @@ export const preloadLibraries = async (): Promise<void> => {
       // 전역 객체에 라이브러리 할당 (안전성을 위해 명시적 확인)
       if (THREE && typeof window !== 'undefined') {
         (window as any).THREE = THREE;
-        console.log('[Preload] THREE.js assigned to global window');
       } else {
         throw new Error('Failed to load THREE.js properly from CDN');
       }
 
       if (p5 && typeof window !== 'undefined') {
         (window as any).p5 = p5;
-        console.log('[Preload] p5.js assigned to global window');
       } else {
         throw new Error('Failed to load p5.js properly from CDN');
       }
@@ -69,14 +63,12 @@ export const preloadLibraries = async (): Promise<void> => {
       // React 19에서 상태 업데이트 검증
       if (typeof window !== 'undefined' && (window as any).THREE && (window as any).p5) {
         librariesPreloaded = true;
-        console.log('[Preload] Libraries preloaded successfully from CDN');
       } else {
         throw new Error('Library assignment verification failed');
       }
       
     } catch (error) {
       preloadError = error instanceof Error ? error : new Error('Unknown CDN preload error');
-      console.error('[Preload] Failed to preload libraries from CDN:', preloadError);
       throw preloadError;
     }
   })();
@@ -140,6 +132,4 @@ export const resetPreloadState = () => {
     (window as any).THREE = undefined;
     (window as any).p5 = undefined;
   }
-  
-  console.log('[Preload] Preload state reset');
 };

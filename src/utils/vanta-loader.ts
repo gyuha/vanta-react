@@ -22,34 +22,28 @@ export const loadVantaEffect = async (effectName: string): Promise<VantaCreator 
   
   // 캐시에서 확인
   if (EFFECT_CACHE[normalizedName]) {
-    console.debug(`[Vanta Loader] Effect "${normalizedName}" loaded from cache`);
     return EFFECT_CACHE[normalizedName];
   }
   
   // 이미 로딩 중인 경우 기존 Promise 반환
   if (normalizedName in LOADING_STATE) {
-    console.debug(`[Vanta Loader] Effect "${normalizedName}" already loading, waiting...`);
     return LOADING_STATE[normalizedName];
   }
   
   // 새로운 로딩 프로세스 시작
   const loadingPromise = (async (): Promise<VantaCreator | null> => {
     try {
-      console.debug(`[Vanta Loader] Loading effect "${normalizedName}" from CDN...`);
-      
       // CDN에서 효과 로드
       const effectCreator = await loadCdnVantaEffect(normalizedName as VantaEffectName);
       
       if (effectCreator && typeof effectCreator === 'function') {
         // 캐시에 저장
         EFFECT_CACHE[normalizedName] = effectCreator;
-        console.debug(`[Vanta Loader] Effect "${normalizedName}" loaded successfully from CDN`);
         return effectCreator;
       } else {
         throw new Error(`Invalid effect creator received for "${normalizedName}"`);
       }
     } catch (error) {
-      console.error(`[Vanta Loader] Failed to load effect "${normalizedName}" from CDN:`, error);
       return null;
     } finally {
       // 로딩 상태에서 제거
@@ -95,8 +89,6 @@ export const clearEffectCache = (): void => {
   Object.keys(LOADING_STATE).forEach(key => {
     delete LOADING_STATE[key];
   });
-  
-  console.debug('[Vanta Loader] Effect cache cleared');
 };
 
 /**
@@ -124,14 +116,11 @@ export const getLoadingEffects = (): string[] => {
  */
 export const preloadEffects = async (effectNames: string[]): Promise<string[]> => {
   try {
-    console.debug(`[Vanta Loader] Preloading ${effectNames.length} effects from CDN...`);
-    
     const loadPromises = effectNames.map(async (effectName) => {
       try {
         await loadVantaEffect(effectName);
         return effectName;
       } catch (error) {
-        console.warn(`[Vanta Loader] Failed to preload effect "${effectName}":`, error);
         return null;
       }
     });
@@ -139,10 +128,8 @@ export const preloadEffects = async (effectNames: string[]): Promise<string[]> =
     const results = await Promise.all(loadPromises);
     const successfulEffects = results.filter((name): name is string => name !== null);
     
-    console.debug(`[Vanta Loader] Successfully preloaded ${successfulEffects.length}/${effectNames.length} effects`);
     return successfulEffects;
   } catch (error) {
-    console.error('[Vanta Loader] Failed to preload effects:', error);
     return [];
   }
 };

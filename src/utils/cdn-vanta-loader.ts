@@ -78,14 +78,7 @@ export const loadMultipleVantaEffects = async (effectNames: VantaEffectName[]): 
 export const preloadPopularVantaEffects = async (): Promise<void> => {
   const popularEffects: VantaEffectName[] = ['waves', 'birds', 'net', 'clouds', 'fog'];
   
-  try {
-    console.log('[CDN Vanta] Preloading popular Vanta effects...');
-    await loadMultipleVantaEffects(popularEffects);
-    console.log('[CDN Vanta] Popular effects preloaded successfully');
-  } catch (error) {
-    console.error('[CDN Vanta] Failed to preload popular effects:', error);
-    throw error;
-  }
+  await loadMultipleVantaEffects(popularEffects);
 };
 
 /**
@@ -105,7 +98,6 @@ export const getVantaLoadStatus = () => ({
 export const clearVantaCache = () => {
   loadedEffects.clear();
   loadingPromises.clear();
-  console.log('[CDN Vanta] Vanta effect cache cleared');
 };
 
 /**
